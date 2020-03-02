@@ -41,6 +41,19 @@ class TestCharacter(CharacterEntity):
     def cost(self, current, next, graph):
         return 1
 
+    def follow_path(self, neighbors, current, path):
+        ret_val = None
+        local_path = path
+        for i in neighbors:
+            if i == current:
+                ret_val = neighbors[i]
+                local_path.append(ret_val)
+                break
+        if ret_val is not None:
+            return self.follow_path(neighbors, ret_val, local_path)
+        else:
+            return local_path
+
     def astar(self, start, goal, wrld):
 
         graph = wrld.grid
@@ -54,11 +67,10 @@ class TestCharacter(CharacterEntity):
         while not frontier.empty():
             current = frontier.get()
 
-
             if current[1] == goal:
                 break
 
-            for next in self.neighbors(current,wrld):
+            for next in self.neighbors(current, wrld):
                 new_cost = cost_so_far[current[1]] + self.cost(current[1], next, graph)
                 if next not in cost_so_far or new_cost < cost_so_far[next]:
                     cost_so_far[next] = new_cost
@@ -66,14 +78,25 @@ class TestCharacter(CharacterEntity):
                     frontier.put((priority, next))
                     came_from[next] = current[1]
 
-        path = []
-        for i in came_from:
-            if came_from[i] is None:
-                curr_key = i
-            if came_from[i] is not None and self.colorGrid:
-                self.set_cell_color(came_from[i][0], came_from[i][1], Fore.RED)
+        path = self.follow_path(came_from, wrld.exitcell, [])
+        for i in path:
+            if i is not None and self.colorGrid:
+                self.set_cell_color(i[0], i[1], Fore.RED)
 
-        print(came_from)
+
+        # for i in sorted(came_from):
+        #     if i == (0, 0):
+        #         curr_key = i
+        #         path.append(i)
+        #         if self.colorGrid:
+        #             self.set_cell_color(i[0], i[1], Fore.RED)
+        #     elif came_from[i] == curr_key:
+        #         curr_key = i
+        #         path.append(i)
+        #         if self.colorGrid:
+        #             self.set_cell_color(i[0], i[1], Fore.RED)
+
+        # print(path)
 
     def do(self, wrld):
         # Your code here
