@@ -11,6 +11,7 @@ from colorama import Fore, Back
 class TestCharacter(CharacterEntity):
 
     colorGrid = True
+    i = 0
 
     def heuristic(self, goal, next):
 
@@ -41,16 +42,17 @@ class TestCharacter(CharacterEntity):
     def cost(self, current, next, graph):
         return 1
 
-    def follow_path(self, neighbors, current, path):
+    def follow_path(self, start, neighbors, current, path):
         ret_val = None
         local_path = path
         for i in neighbors:
             if i == current:
                 ret_val = neighbors[i]
-                local_path.append(ret_val)
-                break
+                if ret_val is not None and ret_val is not start:
+                    local_path.append(ret_val)
+                    break
         if ret_val is not None:
-            return self.follow_path(neighbors, ret_val, local_path)
+            return self.follow_path(start, neighbors, ret_val, local_path)
         else:
             return local_path
 
@@ -78,29 +80,29 @@ class TestCharacter(CharacterEntity):
                     frontier.put((priority, next))
                     came_from[next] = current[1]
 
-        path = self.follow_path(came_from, wrld.exitcell, [])
+        path = self.follow_path(start, came_from, wrld.exitcell, [])
         for i in path:
             if i is not None and self.colorGrid:
                 self.set_cell_color(i[0], i[1], Fore.RED)
 
-
-        # for i in sorted(came_from):
-        #     if i == (0, 0):
-        #         curr_key = i
-        #         path.append(i)
-        #         if self.colorGrid:
-        #             self.set_cell_color(i[0], i[1], Fore.RED)
-        #     elif came_from[i] == curr_key:
-        #         curr_key = i
-        #         path.append(i)
-        #         if self.colorGrid:
-        #             self.set_cell_color(i[0], i[1], Fore.RED)
-
-        # print(path)
+        return [e for e in reversed(path)]
 
     def do(self, wrld):
         # Your code here
         start = (self.x, self.y)
         goal = wrld.exitcell
 
-        self.astar((0, 0), goal, wrld)
+        path = self.astar(start, goal, wrld)
+        if len(path) is not 0:
+            dx = path[self.i][0] - self.x
+            dy = path[self.i][1] - self.y
+            # print("PATH: ", path)
+            # print("CURRENT: ", self.x, self.y)
+            # print("PATH POINTS: ", path[self.i][0], path[self.i][1])
+            # print("MOVE: ", dx, dy)
+            # print("GOAL: ", goal)
+        else:
+            dx = goal[0] - self.x
+            dy = goal[1] - self.y
+
+        self.move(dx, dy)

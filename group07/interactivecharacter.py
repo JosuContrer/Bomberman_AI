@@ -24,6 +24,7 @@ class InteractiveCharacter(CharacterEntity):
             if 'b' == c:
                 bomb = True
         # Execute commands
+        print("MOVE: ",dx, dy)
         self.move(dx, dy)
         if bomb:
             self.place_bomb()
