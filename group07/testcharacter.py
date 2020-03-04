@@ -1,5 +1,7 @@
 # This is necessary to find the main code
 import sys
+import random
+import numpy as np
 sys.path.insert(0, '../bomberman')
 # Import necessary stuff
 from entity import CharacterEntity
@@ -8,10 +10,51 @@ from colorama import Fore, Back
 import math
 from colorama import Fore, Back
 
+
+class QEntry:
+    def __init__(self, state, action_value=None):
+        self.state = state
+        if action_value is None:
+            self.action_value = {
+                (-1, -1, 0): 0,
+                (-1, -1, 1): 0,
+                (-1, 0, 0): 0,
+                (-1, 0, 1): 0,
+                (-1, 1, 0): 0,
+                (-1, 1, 1): 0,
+                (0, -1, 0): 0,
+                (0, -1, 1): 0,
+                (0, 0, 0): 0,
+                (0, 0, 1): 0,
+                (0, 1, 0): 0,
+                (0, 1, 1): 0,
+                (1, -1, 0): 0,
+                (1, -1, 1): 0,
+                (1, 0, 0): 0,
+                (1, 0, 1): 0,
+                (1, 1, 0): 0,
+                (1, 1, 1): 0
+            }
+        else:
+            self.action_value = action_value
+
+
+def build_file():
+    try:
+        q_table = np.fromfile('q_table', dtype=QEntry, count=-1)
+    except:
+        file = open('q_table', 'wb')
+        (np.empty(0, dtype=QEntry)).tofile(file)
+        q_table = np.fromfile('q_table', dtype=QEntry, count=-1)
+
+    return q_table
+
+
 class TestCharacter(CharacterEntity):
 
     colorGrid = True
-    i = 0
+    q_table = build_file()
+
 
     def heuristic(self, goal, next):
 
@@ -87,6 +130,66 @@ class TestCharacter(CharacterEntity):
 
         return [e for e in reversed(path)]
 
+    # step = {0: [(1.0, 428, -1, False)], #
+    #         1: [(1.0, 228, -1, False)],
+    #         2: [(1.0, 348, -1, False)],
+    #         3: [(1.0, 328, -1, False)],
+    #         4: [(1.0, 328, -10, False)],
+    #         5: [(1.0, 328, -10, False)],
+    #         5: [(1.0, 328, -10, False)]
+    #         5: [(1.0, 328, -10, False)]}
+
+    def qLearn(self, wrld):
+
+        #constants
+        alpha = 0.1
+        gamma = 0.6
+        epsilon = 0.1
+        state = wrld
+        action = (0, 0, 0)
+        next_action = (0, 0, 0)
+        old_value = 0
+        next_max = 0
+
+        # For plotting metrics
+        all_epochs = []
+        all_penalties = []
+
+        if random.uniform(0,1) < epsilon:
+            return 1
+        else:
+            for i in self.q_table:
+                if i.state == state:
+                    action = max(i.action_value.values(), key=i.get)
+                    break
+
+        next_state = SensedWorld.from_world(wrld)
+        reward = (next_state.scores[self.name] - wrld.scores[self.name])
+
+        for i in self.q_table:
+            if i.state == state:
+                old_value = i.action_value[action]
+            if i.state == next_state:
+                next_action = max(i.action_value.values(), key=i.get)
+                next_max = i.action_value[next_action]
+
+        new_value = (1 - alpha) * old_value + alpha * (reward + gamma * next_max)
+        state_exists = False
+        for i in range(len(self.q_table)):
+            if self.q_table[i].state == state:
+                state_exists = True
+                new_dic = self.q_table[i].action_value
+                new_dic[next_action] = new_value
+                self.q_table[i] = QEntry(state, new_dic)
+                break
+
+        if not state_exists:
+            new_entry = QEntry(state)
+            new_entry.action_value[next_action] = new_value
+            self.q_table.append(new_entry)
+
+
+
     def do(self, wrld):
         # Your code here
         start = (self.x, self.y)
@@ -94,8 +197,8 @@ class TestCharacter(CharacterEntity):
 
         path = self.astar(start, goal, wrld)
         if len(path) is not 0:
-            dx = path[self.i][0] - self.x
-            dy = path[self.i][1] - self.y
+            dx = path[0][0] - self.x
+            dy = path[0][1] - self.y
             # print("PATH: ", path)
             # print("CURRENT: ", self.x, self.y)
             # print("PATH POINTS: ", path[self.i][0], path[self.i][1])
