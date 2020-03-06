@@ -25,16 +25,16 @@ g.add_monster(SelfPreservingMonster("aggressive", # name
 print('after monster')
 
 # TODO Add your character
-# g.add_character(TestCharacter("me", # name
-#                               "C",  # avatar
-#                               0, 0  # position
-# ))
+g.add_character(TestCharacter("me", # name
+                              "C",  # avatar
+                              0, 0  # position
+))
 
 # Uncomment this if you want the interactive character
-g.add_character(InteractiveCharacter("me", # name
-                                     "C",  # avatar
-                                     0, 0  # position
-))
+# g.add_character(InteractiveCharacter("me", # name
+#                                      "C",  # avatar
+#                                      0, 0  # position
+# ))
 
 print('after char')
 

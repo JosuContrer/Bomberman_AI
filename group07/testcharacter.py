@@ -6,14 +6,24 @@ sys.path.insert(0, '../bomberman')
 # Import necessary stuff
 from entity import CharacterEntity
 from queue import PriorityQueue
+from sensed_world import SensedWorld
 from colorama import Fore, Back
 import math
 from colorama import Fore, Back
 
 
+class QState:
+    def __init__(self, curr_pos, num_enemy, num_bomb, dist_goal=-1, dist_enemy=-1, dist_bomb=-1):
+        self.curr_pos = curr_pos
+        self.num_enemy = num_enemy
+        self.num_bomb = num_bomb
+        self.dist_goal = dist_goal
+        self.dist_enemy = dist_enemy
+        self.dist_bomb = dist_bomb
+
 class QEntry:
-    def __init__(self, state, action_value=None):
-        self.state = state
+    def __init__(self, state_elements, action_value=None):
+        self.state_elements = state_elements
         if action_value is None:
             self.action_value = {
                 (-1, -1, 0): 0,
@@ -39,24 +49,23 @@ class QEntry:
             self.action_value = action_value
 
 
-def build_file():
-    try:
-        q_table = np.fromfile('q_table', dtype=QEntry, count=-1)
-    except:
-        file = open('q_table', 'wb')
-        (np.empty(0, dtype=QEntry)).tofile(file)
-        q_table = np.fromfile('q_table', dtype=QEntry, count=-1)
-
-    return q_table
-
 
 class TestCharacter(CharacterEntity):
 
     colorGrid = True
-    q_table = build_file()
+    q_table = None
+
+    def build_file(self, wrld):
+        try:
+            q_table = np.load('../q_table.npy', allow_pickle=True)
+        except IOError:
+            np.save('../q_table.npy', np.array([QEntry(wrld)], dtype=QEntry), allow_pickle=True)
+            q_table = np.load('../q_table.npy', allow_pickle=True)
+
+        return q_table
 
 
-    def heuristic(self, goal, next):
+    def heuristic(self, next, goal):
 
         if next == goal:
             return 0
@@ -82,7 +91,9 @@ class TestCharacter(CharacterEntity):
 
         return n
 
-    def cost(self, current, next, graph):
+    def cost(self, current, action, wrld):
+        movement = (action[0] - current[1][0], action[1] - current[1][1])
+        self.qLearn(wrld)
         return 1
 
     def follow_path(self, start, neighbors, current, path):
@@ -101,7 +112,6 @@ class TestCharacter(CharacterEntity):
 
     def astar(self, start, goal, wrld):
 
-        graph = wrld.grid
         frontier = PriorityQueue()
         frontier.put((0, start))
         came_from = {}
@@ -116,7 +126,7 @@ class TestCharacter(CharacterEntity):
                 break
 
             for next in self.neighbors(current, wrld):
-                new_cost = cost_so_far[current[1]] + self.cost(current[1], next, graph)
+                new_cost = cost_so_far[current[1]] + self.cost(current, next, wrld)
                 if next not in cost_so_far or new_cost < cost_so_far[next]:
                     cost_so_far[next] = new_cost
                     priority = new_cost + self.heuristic(goal, next)
@@ -139,73 +149,99 @@ class TestCharacter(CharacterEntity):
     #         5: [(1.0, 328, -10, False)]
     #         5: [(1.0, 328, -10, False)]}
 
+    def wrldToState(self, wrld):
+        curr_pos = (self.x, self.y)
+        num_bombs = len(wrld.bombs)
+        num_enemy = len(wrld.monsters) + len(wrld.characters) - 1
+
+        dist_goal = -1
+        dist_enemy = -1
+        dist_bomb = -1
+        if num_bombs > 0:
+            for i in wrld.bombs:
+
+        if ()
+
+
     def qLearn(self, wrld):
 
         #constants
         alpha = 0.1
         gamma = 0.6
-        epsilon = 0.1
+        epsilon = 0.5
         state = wrld
-        action = (0, 0, 0)
-        next_action = (0, 0, 0)
-        old_value = 0
-        next_max = 0
+        action = (0, 0, -1)
 
-        # For plotting metrics
-        all_epochs = []
-        all_penalties = []
-
-        if random.uniform(0,1) < epsilon:
-            return 1
-        else:
+        if random.uniform(0, 1) > epsilon:
             for i in self.q_table:
                 if i.state == state:
                     action = max(i.action_value.values(), key=i.get)
                     break
 
-        next_state = SensedWorld.from_world(wrld)
+        if action == (0, 0, -1):
+            action = random.choice(list(self.q_table[0].action_value.keys()))
+
+        sensed_world = SensedWorld.from_world(wrld)
+        next_state, next_events = sensed_world.next()
         reward = (next_state.scores[self.name] - wrld.scores[self.name])
 
+        old_value = 0
         for i in self.q_table:
             if i.state == state:
                 old_value = i.action_value[action]
+                break
+
+        print(old_value)
+        next_max = 0
+        for i in self.q_table:
             if i.state == next_state:
-                next_action = max(i.action_value.values(), key=i.get)
-                next_max = i.action_value[next_action]
+                next_max = max(i.action_value.values())
 
         new_value = (1 - alpha) * old_value + alpha * (reward + gamma * next_max)
+        print(new_value)
+
         state_exists = False
         for i in range(len(self.q_table)):
             if self.q_table[i].state == state:
                 state_exists = True
                 new_dic = self.q_table[i].action_value
-                new_dic[next_action] = new_value
+                new_dic[action] = new_value
                 self.q_table[i] = QEntry(state, new_dic)
                 break
 
         if not state_exists:
             new_entry = QEntry(state)
-            new_entry.action_value[next_action] = new_value
-            self.q_table.append(new_entry)
+            new_entry.action_value[action] = new_value
+            self.q_table = np.append(self.q_table, [new_entry])
+
+        return action
 
 
 
     def do(self, wrld):
         # Your code here
-        start = (self.x, self.y)
-        goal = wrld.exitcell
-
-        path = self.astar(start, goal, wrld)
-        if len(path) is not 0:
-            dx = path[0][0] - self.x
-            dy = path[0][1] - self.y
-            # print("PATH: ", path)
-            # print("CURRENT: ", self.x, self.y)
-            # print("PATH POINTS: ", path[self.i][0], path[self.i][1])
-            # print("MOVE: ", dx, dy)
-            # print("GOAL: ", goal)
-        else:
-            dx = goal[0] - self.x
-            dy = goal[1] - self.y
-
+        # start = (self.x, self.y)
+        # goal = wrld.exitcell
+        #
+        # path = self.astar(start, goal, wrld)
+        # if len(path) is not 0:
+        #     dx = path[0][0] - self.x
+        #     dy = path[0][1] - self.y
+        #     # print("PATH: ", path)
+        #     # print("CURRENT: ", self.x, self.y)
+        #     # print("PATH POINTS: ", path[self.i][0], path[self.i][1])
+        #     # print("MOVE: ", dx, dy)
+        #     # print("GOAL: ", goal)
+        # else:
+        #     dx = goal[0] - self.x
+        #     dy = goal[1] - self.y
+        #
+        # self.move(dx, dy)
+        self.q_table = self.build_file(wrld)
+        dx, dy, bomb = self.qLearn(wrld)
         self.move(dx, dy)
+        if bomb:
+            self.place_bomb()
+        np.save('../q_table.npy', self.q_table, allow_pickle=True)
+        for i in self.q_table:
+            print(i.action_value)
