@@ -13,7 +13,7 @@ from colorama import Fore, Back
 
 
 class QState:
-    def __init__(self, curr_pos, num_enemy, num_bomb, dist_goal=-1, dist_enemy=-1, dist_bomb=-1):
+    def __init__(self, curr_pos, num_enemy=-1, num_bomb=-1, dist_goal=-1, dist_enemy=-1, dist_bomb=-1):
         self.curr_pos = curr_pos
         self.num_enemy = num_enemy
         self.num_bomb = num_bomb
@@ -21,9 +21,12 @@ class QState:
         self.dist_enemy = dist_enemy
         self.dist_bomb = dist_bomb
 
+    def stateToList(self):
+        return [self.curr_pos, self.num_enemy, self.num_bomb, self.dist_goal, self.dist_enemy, self.dist_bomb]
+
 class QEntry:
     def __init__(self, state_elements, action_value=None):
-        self.state_elements = state_elements
+        self.state = state_elements
         if action_value is None:
             self.action_value = {
                 (-1, -1, 0): 0,
@@ -49,7 +52,6 @@ class QEntry:
             self.action_value = action_value
 
 
-
 class TestCharacter(CharacterEntity):
 
     colorGrid = True
@@ -59,7 +61,7 @@ class TestCharacter(CharacterEntity):
         try:
             q_table = np.load('../q_table.npy', allow_pickle=True)
         except IOError:
-            np.save('../q_table.npy', np.array([QEntry(wrld)], dtype=QEntry), allow_pickle=True)
+            np.save('../q_table.npy', np.array([QEntry(self.wrldToState(wrld))], dtype=QEntry), allow_pickle=True)
             q_table = np.load('../q_table.npy', allow_pickle=True)
 
         return q_table
@@ -158,32 +160,78 @@ class TestCharacter(CharacterEntity):
         dist_enemy = -1
         dist_bomb = -1
         if num_bombs > 0:
-            for i in wrld.bombs:
+            for i in wrld.bombs.values():
+                temp = self.heuristic(curr_pos, (i.x, i.y))
+                if temp < dist_bomb or dist_bomb == -1:
+                    dist_bomb = temp
 
-        if ()
+        if num_enemy > 0:
+            for i in wrld.monsters.values():
+                temp = self.heuristic(curr_pos, (i[0].x, i[0].y))
+                if temp < dist_enemy or dist_enemy == -1:
+                    dist_enemy = temp
+            for i in wrld.characters.values():
+                if i[0] != self:
+                    temp = self.heuristic(curr_pos, (i[0].x, i[0].y))
+                    if temp < dist_enemy or dist_enemy == -1:
+                        dist_enemy = temp
+
+        return QState(curr_pos)#, num_enemy, num_bombs, dist_goal, dist_enemy, dist_bomb)
 
 
     def qLearn(self, wrld):
 
         #constants
-        alpha = 0.1
+        alpha = 0.6
         gamma = 0.6
-        epsilon = 0.5
-        state = wrld
+        epsilon = 0.3
+        state = self.wrldToState(wrld).stateToList()
         action = (0, 0, -1)
 
         if random.uniform(0, 1) > epsilon:
             for i in self.q_table:
                 if i.state == state:
-                    action = max(i.action_value.values(), key=i.get)
+                    action = max(i.action_value.keys(), key=(lambda x: i.action_value[x]))
+                    print(action, i.action_value[action])
                     break
 
         if action == (0, 0, -1):
             action = random.choice(list(self.q_table[0].action_value.keys()))
+            print("rand", action)
 
         sensed_world = SensedWorld.from_world(wrld)
         next_state, next_events = sensed_world.next()
-        reward = (next_state.scores[self.name] - wrld.scores[self.name])
+        reward = 1
+        if len(next_events) > 0:
+            for i in next_events:
+                if i.tpe == 0 and i.character == self:
+                    print('nice bomb')
+                    reward += 10
+                if i.tpe == 1 and i.character == self:
+                    print('niiice bomb')
+                    reward += 50
+                if i.tpe == 2:
+                    if i.character == self and i.character != i.other:
+                        print('shmoney bomb')
+                        reward += 100
+                    elif i.character == self and i.character == i.other:
+                        print('bad bomd')
+                        reward -= 1000
+                if i.tpe == 3 and i.character == self:
+                    print('bad mon')
+                    reward -= 1000
+                if i.tpe == 4 and i.character == self:
+                    print('winner')
+                    reward += 1000
+
+        if (self.x + action[0]) >= next_state.width() or (self.y + action[1]) >= next_state.height() or (self.x + action[0]) < 0 or (self.y + action[1]) < 0:
+            reward -= 10
+        elif next_state.wall_at((self.x + action[0]), (self.y + action[1])):
+            reward -= 10
+        elif self.heuristic((self.x, self.y), next_state.exitcell) > self.heuristic(((self.x + action[0]), (self.y + action[1])), next_state.exitcell):
+            reward += 2
+
+        next_state = self.wrldToState(next_state).stateToList()
 
         old_value = 0
         for i in self.q_table:
@@ -191,14 +239,14 @@ class TestCharacter(CharacterEntity):
                 old_value = i.action_value[action]
                 break
 
-        print(old_value)
+        # print(old_value)
         next_max = 0
         for i in self.q_table:
             if i.state == next_state:
                 next_max = max(i.action_value.values())
 
+        print(next_max)
         new_value = (1 - alpha) * old_value + alpha * (reward + gamma * next_max)
-        print(new_value)
 
         state_exists = False
         for i in range(len(self.q_table)):
@@ -242,6 +290,7 @@ class TestCharacter(CharacterEntity):
         self.move(dx, dy)
         if bomb:
             self.place_bomb()
+
         np.save('../q_table.npy', self.q_table, allow_pickle=True)
         for i in self.q_table:
             print(i.action_value)

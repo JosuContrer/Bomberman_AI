@@ -47,10 +47,10 @@ def run_game():
     # g.go(0)
 
     # Use this if you want to proceed automatically
-    g.go(0)
+    g.go(1)
 
 
-for i in range(100):
+for i in range(1000):
     run_game()
 
 input()

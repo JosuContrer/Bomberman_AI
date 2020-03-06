@@ -10,7 +10,7 @@ from monsters.stupid_monster import StupidMonster
 from monsters.selfpreserving_monster import SelfPreservingMonster
 
 # TODO This is your code!
-sys.path.insert(1, '../groupNN')
+sys.path.insert(1, '../group07')
 from testcharacter import TestCharacter
 # Uncomment this if you want the interactive character
 from interactivecharacter import InteractiveCharacter
@@ -34,7 +34,7 @@ g.add_monster(SelfPreservingMonster("aggressive", # name
 #                               0, 0  # position
 # ))
 
-g.add_character(InteractiveCharacter("me", # name
+g.add_character(TestCharacter("me", # name
                                      "C",  # avatar
                                      0, 0  # position
 ))
