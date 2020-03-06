@@ -18,6 +18,8 @@ from testcharacter import TestCharacter
 from interactivecharacter import InteractiveCharacter
 
 # Create the game
+
+
 random.seed(123)
 g = Game.fromfile('map.txt')
 g.add_monster(SelfPreservingMonster("selfpreserving", # name

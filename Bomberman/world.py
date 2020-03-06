@@ -3,6 +3,7 @@ from events import Event
 import sys
 from colorama import Fore, Back, Style
 
+
 class World:
 
     def __init__(self):

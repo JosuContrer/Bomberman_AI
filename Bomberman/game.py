@@ -4,6 +4,8 @@ import colorama
 import pygame
 import math
 
+from entity import CharacterEntity
+
 class Game:
     """Game class"""
 
@@ -90,7 +92,7 @@ class Game:
                     self.screen.blit(self.bomb_sprite, rect)
         pygame.display.flip()
 
-    def go(self, wait=0):
+    def go(self, TrainNet, TargetNet, epsilon, copy_step, wait=0):
         """ Main game loop. """
 
         if wait is 0:
@@ -103,15 +105,75 @@ class Game:
 
         colorama.init(autoreset=True)
         self.display_gui()
-        self.draw()
+        #self.draw()
         step()
+
+        # Training algorithm
+        rewards = 0
+        iter = 0
+        done = False
+        #print(self.world.characters[0][0].x, self.world.characters[0][0].y)
+        observations = [self.world.characters[0][0].x, self.world.characters[0][0].y]
+
+        # number of possible moves (9) and bomb placment (2)
+        do_action = {
+            0: (-1, -1, False),
+            1: (-1, -1, True),
+            2: (-1, 0, False),
+            3: (-1, 0, True),
+            4: (-1, 1, False),
+            5: (-1, 1, True),
+            6: (0, -1, False),
+            7: (0, -1, True),
+            8: (0, 0, False),
+            9: (0, 0, True),
+            10: (0, 1, False),
+            11: (0, 1, True),
+            12: (1, -1, False),
+            13: (1, -1, True),
+            14: (1, 0, False),
+            15: (1, 0, True),
+            16: (1, 1, False),
+            17: (1, 1, True)
+
+        }
+
         while not self.done():
+            action = TrainNet.get_action(observations, epsilon)
+            prev_observations = observations
             (self.world, self.events) = self.world.next()
+            next_move = do_action[action]
+
+            if len(self.world.characters) is not 0:
+                if self.world.characters[0][0].x >= 0 and self.world.characters[0][0].y >= 0 and self.world.characters[0][0].x < self.world.width() and self.world.characters[0][0].y < self.world.height():
+                    self.world.characters[0][0].move(next_move[0], next_move[1])
+
+                    if next_move[2]:
+                        self.world.characters[0][0].place_bomb()
+
+
             self.display_gui()
-            self.draw()
+            # self.draw()
             step()
             self.world.next_decisions()
+            if len(self.world.characters) is not 0:
+                observation, reward = (self.world.characters[0][0].x,self.world.characters[0][0].y), self.world.scores['me']
+                rewards += abs(reward)
+
+            if self.done():
+                rewards += -1000
+                done = True
+
+            exp = {'s': prev_observations, 'a': action, 'r': reward, 's2': observations, 'done': done}
+            TrainNet.add_experience(exp)
+            TrainNet.train(TargetNet)
+            iter += 1
+            if iter > copy_step:
+                iter = 0
+                TargetNet.copy_weights(TrainNet)
+
         colorama.deinit()
+        return rewards
 
     ###################
     # Private methods #

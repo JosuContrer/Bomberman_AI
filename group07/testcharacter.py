@@ -8,6 +8,7 @@ from colorama import Fore, Back
 import math
 from colorama import Fore, Back
 
+
 class TestCharacter(CharacterEntity):
 
     colorGrid = True
@@ -87,22 +88,26 @@ class TestCharacter(CharacterEntity):
 
         return [e for e in reversed(path)]
 
+
     def do(self, wrld):
         # Your code here
-        start = (self.x, self.y)
-        goal = wrld.exitcell
+        # start = (self.x, self.y)
+        # goal = wrld.exitcell
+        #
+        # path = self.astar(start, goal, wrld)
+        # if len(path) is not 0:
+        #     dx = path[self.i][0] - self.x
+        #     dy = path[self.i][1] - self.y
+        #     # print("PATH: ", path)
+        #     # print("CURRENT: ", self.x, self.y)
+        #     # print("PATH POINTS: ", path[self.i][0], path[self.i][1])
+        #     # print("MOVE: ", dx, dy)
+        #     # print("GOAL: ", goal)
+        # else:
+        #     dx = goal[0] - self.x
+        #     dy = goal[1] - self.y
+        #
+        # self.move(dx, dy)
 
-        path = self.astar(start, goal, wrld)
-        if len(path) is not 0:
-            dx = path[self.i][0] - self.x
-            dy = path[self.i][1] - self.y
-            # print("PATH: ", path)
-            # print("CURRENT: ", self.x, self.y)
-            # print("PATH POINTS: ", path[self.i][0], path[self.i][1])
-            # print("MOVE: ", dx, dy)
-            # print("GOAL: ", goal)
-        else:
-            dx = goal[0] - self.x
-            dy = goal[1] - self.y
 
-        self.move(dx, dy)
+        xx =0
