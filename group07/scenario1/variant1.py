@@ -51,7 +51,7 @@ def run_game():
     g.go(1)
 
 
-for i in range(1000):
+for i in range(100):
     run_game()
 
 input()

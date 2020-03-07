@@ -13,22 +13,6 @@ import math
 from colorama import Fore, Back
 
 
-class QState:
-    def __init__(self, curr_pos=(-1, -1), num_enemy=-1, num_bomb=-1, dist_goal=-1, dist_enemy=-1, dist_bomb_x=False,
-                 dist_bomb_y=False):
-        self.curr_pos = curr_pos
-        self.num_enemy = num_enemy
-        self.num_bomb = num_bomb
-        self.dist_goal = dist_goal
-        self.dist_enemy = dist_enemy
-        self.dist_bomb_x = dist_bomb_x
-        self.dist_bomb_y = dist_bomb_y
-
-    def stateToList(self):
-        return [self.curr_pos, self.num_enemy, self.num_bomb, self.dist_goal, self.dist_enemy, self.dist_bomb_x,
-                self.dist_bomb_y]
-
-
 class QEntry:
     def __init__(self, state_elements, action_value=None):
         self.state = state_elements
@@ -58,8 +42,9 @@ class QEntry:
 
 
 class TestCharacter(CharacterEntity):
-    colorGrid = True
+    colorGrid = False
     q_table = None
+    show_rewards = False
 
     def build_file(self, wrld):
         try:
@@ -79,7 +64,7 @@ class TestCharacter(CharacterEntity):
         dy = goal[1] - next[1]
 
         h = math.sqrt(dx * dx + dy * dy)
-        return round(h)
+        return h
 
     def neighbors(self, x, y, wrld):
 
@@ -90,15 +75,13 @@ class TestCharacter(CharacterEntity):
 
                 if (i, j) != (x, y) and i >= 0 and j >= 0 and i < wrld.width() and j < wrld.height():
                     if not wrld.wall_at(i, j):
-                        # if self.colorGrid:
-                        #     self.set_cell_color(x, y, Fore.CYAN)
+                        if self.colorGrid:
+                            self.set_cell_color(x, y, Fore.CYAN)
                         n.append((i, j))
 
         return n
 
     def cost(self, current, action, wrld):
-        movement = (action[0] - current[1][0], action[1] - current[1][1])
-        self.qLearn(wrld)
         return 1
 
     def follow_path(self, start, neighbors, current, path):
@@ -130,7 +113,7 @@ class TestCharacter(CharacterEntity):
             if current[1] == goal:
                 break
 
-            for next in self.neighbors(current, wrld):
+            for next in self.neighbors(current[1][0], current[1][1], wrld):
                 new_cost = cost_so_far[current[1]] + self.cost(current, next, wrld)
                 if next not in cost_so_far or new_cost < cost_so_far[next]:
                     cost_so_far[next] = new_cost
@@ -139,6 +122,7 @@ class TestCharacter(CharacterEntity):
                     came_from[next] = current[1]
 
         path = self.follow_path(start, came_from, wrld.exitcell, [])
+        # print(path)
         for i in path:
             if i is not None and self.colorGrid:
                 self.set_cell_color(i[0], i[1], Fore.RED)
@@ -155,46 +139,50 @@ class TestCharacter(CharacterEntity):
     #         5: [(1.0, 328, -10, False)]}
 
     def wrldToState(self, wrld):
-        curr_pos = (self.x, self.y)
-        num_bombs = len(wrld.bombs)
-        num_enemy = len(wrld.monsters) + len(wrld.characters) - 1
+        state_dic = {}
 
-        dist_goal = -1
-        dist_enemy = -1
-        dist_bomb_x = -1
-        dist_bomb_y = -1
-        if num_bombs > 0:
-            for i in wrld.bombs.values():
-                if curr_pos[0] == i.x:
-                    dist_bomb_x = True
-                    break
-                if curr_pos[1] == i.y:
-                    dist_bomb_y = True
-                    break
+        a_star = self.astar((self.x, self.y), wrld.exitcell, wrld)
 
-        if num_enemy > 0:
-            for i in wrld.monsters.values():
-                temp = self.heuristic(curr_pos, (i[0].x, i[0].y))
-                if temp < dist_enemy or dist_enemy == -1:
-                    dist_enemy = temp
-            for i in wrld.characters.values():
-                if i:
-                    if i[0] != self:
-                        temp = self.heuristic(curr_pos, (i[0].x, i[0].y))
-                        if temp < dist_enemy or dist_enemy == -1:
-                            dist_enemy = temp
+        for x in range(-2, 3):
+            for y in range(-2, 3):
+                if self.x + x >= wrld.width() or self.x + x < 0:
+                    state_dic[(x, y)] = 'e'
 
-        dist_goal = self.heuristic(curr_pos, wrld.exitcell)
-        num_enemy = -1
-        return QState(curr_pos, num_enemy, num_bombs, dist_goal, dist_enemy, dist_bomb_x, dist_bomb_y)
+                elif self.y + y >= wrld.height() or self.y + y < 0:
+                    state_dic[(x, y)] = 'e'
+
+                elif wrld.wall_at((self.x + x), (self.y + y)):
+                    state_dic[(x, y)] = 'w'
+
+                elif wrld.explosion_at((self.x + x), (self.y + y)):
+                    state_dic[(x, y)] = 'x'
+
+                elif wrld.monsters_at((self.x + x), (self.y + y)):
+                    state_dic[(x, y)] = 'm'
+
+                elif wrld.characters_at((self.x + x), (self.y + y)) and (x, y) != (0, 0):
+                    state_dic[(x, y)] = 'm'
+
+                elif wrld.bomb_at((self.x + x), (self.y + y)):
+                    state_dic[(x, y)] = 'b'
+
+                elif wrld.exit_at((self.x + x), (self.y + y)):
+                    state_dic[(x, y)] = 'g'
+
+                else:
+                    state_dic[(x, y)] = 'o'
+        if len(a_star):
+            state_dic['a_star'] = (a_star[0][0] - self.x, a_star[0][1] - self.y)
+
+        return state_dic
 
     def qLearn(self, wrld):
 
         # constants
         alpha = 0.8
         gamma = 0.8
-        epsilon = 0.2
-        state = self.wrldToState(wrld).stateToList()
+        epsilon = 0
+        state = self.wrldToState(wrld)
         action = (0, 0, -1)
 
         if random.uniform(0, 1) > epsilon:
@@ -204,9 +192,12 @@ class TestCharacter(CharacterEntity):
                         key_list = []
                         for key, value in i.action_value.items():
                             if value == 0:
+                                # if state[(key[0], key[1])] == 'a':
+                                #     action = (key[0], key[1], 0)
                                 key_list.append(key)
 
                         action = random.choice(key_list)
+
                     else:
                         action = max(i.action_value, key=(lambda x: i.action_value[x]))
                         print(action, i.action_value[action])
@@ -218,12 +209,12 @@ class TestCharacter(CharacterEntity):
 
         sensed_world = SensedWorld.from_world(wrld)
         next_state, next_events = sensed_world.next()
-        reward = 1
+        reward = 5000 / next_state.scores[self.name]
         if len(next_events) > 0:
             for i in next_events:
                 if i.tpe == 0 and i.character == self:
                     print('nice bomb')
-                    reward += 10
+                    reward += (1 / self.heuristic(((self.x + action[0]), (self.y + action[1])), next_state.exitcell)) * 10
                 if i.tpe == 1 and i.character == self:
                     print('niiice bomb')
                     reward += 50
@@ -245,19 +236,21 @@ class TestCharacter(CharacterEntity):
         elif next_state.monsters_at(self.x, self.y):
             reward -= 1000
 
-        for i in self.neighbors(self.x, self.y, next_state):
-            if next_state.monsters_at(i[0], i[1]):
-                reward -= 100
-
         if self.heuristic(
                 ((self.x + action[0]), (self.y + action[1])), next_state.exitcell) == 0:
-            reward += 10000
-        else:
-            reward += (self.heuristic(
-                (self.x, self.y), next_state.exitcell) - self.heuristic(
-                ((self.x + action[0]), (self.y + action[1])), next_state.exitcell)) * 5
+            reward += 1000
 
-        next_state = self.wrldToState(next_state).stateToList()
+        else:
+            # print('A- Star Rewards')
+            # print(action[0], state['a_star'][0])
+            # print(action[1], state['a_star'][1])
+            if 'a_star' in state:
+                reward += (abs(action[0] + state['a_star'][0])) + (abs(action[1] + state['a_star'][1])) - 2
+            else:
+                temp = self.heuristic(((self.x + action[0]), (self.y + action[1])), next_state.exitcell)
+                reward += (1 / temp) * 2 if temp < self.heuristic((self.x, self.y), next_state.exitcell) else -1
+
+        next_state = self.wrldToState(next_state)
 
         old_value = 0
         for i in self.q_table:
@@ -271,9 +264,7 @@ class TestCharacter(CharacterEntity):
             if i.state == next_state:
                 next_max = max(i.action_value.values())
 
-        print(next_max)
         new_value = (1 - alpha) * old_value + alpha * (reward + gamma * next_max)
-        print(new_value)
 
         state_exists = False
         for i in range(len(self.q_table)):
@@ -289,7 +280,12 @@ class TestCharacter(CharacterEntity):
             new_entry.action_value[action] = new_value
             self.q_table = np.append(self.q_table, [new_entry])
 
+        if self.show_rewards:
+            file = open('../rewards.csv', 'a')
+            file.write('(' + str(self.x) + ' ' + str(self.y) + '),(' + str(action[0]) + ' ' + str(action[1]) + ' ' + str(action[2]) + '),' + str(reward))
+
         return action
+
 
     def do(self, wrld):
         # Your code here
@@ -316,6 +312,7 @@ class TestCharacter(CharacterEntity):
         if bomb:
             self.place_bomb()
 
+        print(len(self.q_table))
         np.save('../q_table.npy', self.q_table, allow_pickle=True)
-        for i in self.q_table:
-            print(i.action_value)
+        # for i in self.q_table:
+        #     print(i.action_value)
