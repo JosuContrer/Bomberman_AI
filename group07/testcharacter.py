@@ -184,9 +184,8 @@ class TestCharacter(CharacterEntity):
                         if temp < dist_enemy or dist_enemy == -1:
                             dist_enemy = temp
 
-        curr_pos = (-1,-1)
+        dist_goal = self.heuristic(curr_pos, wrld.exitcell)
         num_enemy = -1
-        num_bombs = -1
         return QState(curr_pos, num_enemy, num_bombs, dist_goal, dist_enemy, dist_bomb_x, dist_bomb_y)
 
     def qLearn(self, wrld):
@@ -194,7 +193,7 @@ class TestCharacter(CharacterEntity):
         # constants
         alpha = 0.8
         gamma = 0.8
-        epsilon = 0
+        epsilon = 0.2
         state = self.wrldToState(wrld).stateToList()
         action = (0, 0, -1)
 
@@ -225,9 +224,9 @@ class TestCharacter(CharacterEntity):
                 if i.tpe == 0 and i.character == self:
                     print('nice bomb')
                     reward += 10
-                # if i.tpe == 1 and i.character == self:
-                #     print('niiice bomb')
-                #     reward += 50
+                if i.tpe == 1 and i.character == self:
+                    print('niiice bomb')
+                    reward += 50
                 # if i.tpe == 2:
                 #     if i.character == self and i.character != i.other:
                 #         print('shmoney bomb')
@@ -238,21 +237,25 @@ class TestCharacter(CharacterEntity):
 
         if (self.x + action[0]) >= next_state.width() or (self.y + action[1]) >= next_state.height() or (
                 self.x + action[0]) < 0 or (self.y + action[1]) < 0:
-            reward -= 1000
+            reward -= 10
         elif next_state.wall_at((self.x + action[0]), (self.y + action[1])):
-            reward -= 1000
+            reward -= 10
         elif next_state.explosion_at((self.x + action[0]), (self.y + action[1])):
+            reward -= 1000
+        elif next_state.monsters_at(self.x, self.y):
             reward -= 1000
 
         for i in self.neighbors(self.x, self.y, next_state):
             if next_state.monsters_at(i[0], i[1]):
                 reward -= 100
 
-        if self.heuristic((self.x, self.y), next_state.exitcell) > self.heuristic(
-                ((self.x + action[0]), (self.y + action[1])), next_state.exitcell):
-            reward += 1 / self.heuristic(((self.x + action[0]), (self.y + action[1])), next_state.exitcell)
+        if self.heuristic(
+                ((self.x + action[0]), (self.y + action[1])), next_state.exitcell) == 0:
+            reward += 10000
         else:
-            reward -= self.heuristic(((self.x + action[0]), (self.y + action[1])), next_state.exitcell)
+            reward += (self.heuristic(
+                (self.x, self.y), next_state.exitcell) - self.heuristic(
+                ((self.x + action[0]), (self.y + action[1])), next_state.exitcell)) * 5
 
         next_state = self.wrldToState(next_state).stateToList()
 

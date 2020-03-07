@@ -1,5 +1,6 @@
 # This is necessary to find the main code
 import sys
+import time
 sys.path.insert(0, '../../bomberman')
 sys.path.insert(1, '..')
 
