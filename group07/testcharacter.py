@@ -323,7 +323,7 @@ class TestCharacter(CharacterEntity):
 
         next_state = self.wrld_to_state(next_state)
 
-        if 'mon_move' in self.give_rewards: # TODO - MAYBE BASED ON NEXT STATE?
+        if 'mon_move' in self.give_rewards:
             if 'm' in next_state.values():
                 for key, value in next_state.items():
                     if value == 'm':
