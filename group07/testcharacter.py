@@ -44,7 +44,7 @@ class QEntry:
 class TestCharacter(CharacterEntity):
     colorGrid = False
     q_table = None
-    show_rewards = False
+    show_rewards = True
 
     def build_file(self, wrld):
         try:
@@ -170,8 +170,8 @@ class TestCharacter(CharacterEntity):
                 elif wrld.bomb_at((self.x + x), (self.y + y)):
                     state_dic[(x, y)] = 'b'
 
-                elif wrld.exit_at((self.x + x), (self.y + y)):
-                    state_dic[(x, y)] = 'g'
+                # elif wrld.exit_at((self.x + x), (self.y + y)):
+                #     state_dic[(x, y)] = 'g'
 
                 else:
                     state_dic[(x, y)] = 'o'
@@ -214,7 +214,7 @@ class TestCharacter(CharacterEntity):
 
         sensed_world = SensedWorld.from_world(wrld)
         next_state, next_events = sensed_world.next()
-        reward = 5000 / next_state.scores[self.name] * 0.3
+        reward = 0
         if len(next_events) > 0:
             for i in next_events:
                 if i.tpe == 0 and i.character == self:
@@ -236,14 +236,14 @@ class TestCharacter(CharacterEntity):
             reward -= 10
         elif next_state.explosion_at((self.x + action[0]), (self.y + action[1])):
             reward -= 500
-        elif next_state.monsters_at((self.x + action[0]), (self.y + action[1])):
-            reward -= 500
+        # elif next_state.monsters_at((self.x + action[0]), (self.y + action[1])):
+        #     reward -= 1000
         elif next_state.wall_at((self.x + action[0]), (self.y + action[1])):
             reward -= 10
 
-        # for i in self.neighbors((self.x + action[0]), (self.y + action[1]), next_state):
-        #     if next_state.monsters_at(i[0], i[1]):
-        #         reward -= 100
+        for i in self.neighbors((self.x + action[0]), (self.y + action[1]), next_state, True):
+            if next_state.monsters_at(i[0], i[1]):
+                reward -= 100
 
         if self.heuristic(
                 ((self.x + action[0]), (self.y + action[1])), next_state.exitcell) == 0:
@@ -300,7 +300,7 @@ class TestCharacter(CharacterEntity):
         print(reward)
         if self.show_rewards:
             file = open('rewards.csv', 'a')
-            file.write('(' + str(self.x) + ' ' + str(self.y) + '),(' + str(action[0]) + ' ' + str(action[1]) + ' ' + str(action[2]) + '),' + str(reward))
+            file.write('(' + str(self.x) + ' ' + str(self.y) + '),(' + str(action[0]) + ' ' + str(action[1]) + ' ' + str(action[2]) + '),' + str(reward) + ',\n')
 
         return action
 
