@@ -44,5 +44,5 @@ def run_game():
     # Run!
     g.go(1)
 
-for i in range(1000):
+for i in range(500):
     run_game()

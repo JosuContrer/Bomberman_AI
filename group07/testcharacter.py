@@ -44,6 +44,8 @@ class QEntry:
 class TestCharacter(CharacterEntity):
     colorGrid = False
     q_table = None
+    moving_alpha = False
+
     show_rewards = False
 
     give_rewards = [
@@ -70,15 +72,16 @@ class TestCharacter(CharacterEntity):
         'bomb',
         'exit',
         'none',
-        'a_star'
+        'a_star',
+        'used_bomb'
     ]
 
     def build_file(self, wrld):
         try:
-            q_table = np.load('q_table.npy', allow_pickle=True)
+            q_table = np.load('brain.npy', allow_pickle=True)
         except IOError:
-            np.save('q_table.npy', np.array([QEntry(self.wrld_to_state(wrld))], dtype=QEntry), allow_pickle=True)
-            q_table = np.load('q_table.npy', allow_pickle=True)
+            np.save('brain.npy', np.array([QEntry(self.wrld_to_state(wrld))], dtype=QEntry), allow_pickle=True)
+            q_table = np.load('brain.npy', allow_pickle=True)
 
         return q_table
 
@@ -165,8 +168,8 @@ class TestCharacter(CharacterEntity):
 
         a_star = self.astar((self.x, self.y), wrld.exitcell, wrld, True)
 
-        for x in range(-2, 3):
-            for y in range(-2, 3):
+        for x in range(-3, 4):
+            for y in range(-3, 4):
                 if 'invalid' in self.view_cats and self.x + x >= wrld.width() or self.x + x < 0:
                     state_dic[(x, y)] = 'e'
 
@@ -199,16 +202,16 @@ class TestCharacter(CharacterEntity):
         else:
             state_dic['a_star'] = (wrld.exitcell[0] - self.x, wrld.exitcell[1] - self.y)
 
-        state_dic['bomb'] = True if len(wrld.bombs) else False
+        state_dic['bomb'] = True if 'used_bomb' in self.view_cats and wrld.bombs else False
 
         return state_dic
 
     def qLearn(self, wrld, state):
 
         # constants
-        alpha = 0.8
+        alpha = (1 - 0.000025 * self.q_table.size if self.q_table.size < 2000 else 0.5) if self.moving_alpha else 0.8
         gamma = 0.8
-        epsilon = 0
+        epsilon = 0.01
         action = (0, 0, -1)
 
         if random.uniform(0, 1) >= epsilon:
@@ -361,7 +364,7 @@ class TestCharacter(CharacterEntity):
         new_value_backup = (1 - alpha) * old_value_backup + alpha * (reward + gamma * next_max)
 
         state_exists = False
-        for i in range(len(self.q_table)):
+        for i in range(self.q_table.size):
             if self.q_table[i].state == state:
                 state_exists = True
                 new_dic = self.q_table[i].action_value
@@ -395,7 +398,7 @@ class TestCharacter(CharacterEntity):
         if bomb:
             self.place_bomb()
 
-        np.save('q_table.npy', self.q_table, allow_pickle=True)
+        np.save('brain.npy', self.q_table, allow_pickle=True)
 
         # for i in self.q_table:
         #     print(i.action_value)
@@ -405,7 +408,7 @@ class TestCharacter(CharacterEntity):
         #     self.move(dx, dy)
         #     if bomb:
         #         self.place_bomb()
-        #     np.save('q_table.npy', self.q_table, allow_pickle=True)
+        #     np.save('brain.npy', self.q_table, allow_pickle=True)
         # else:
         #     a_star = self.astar((self.x, self.y), wrld.exitcell, wrld, True)
         #     if a_star:

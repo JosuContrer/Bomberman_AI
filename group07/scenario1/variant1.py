@@ -21,7 +21,7 @@ from interactivecharacter import InteractiveCharacter
 # Create the game
 
 def run_game():
-    # random.seed(123)
+    random.seed(123)
     g = Game.fromfile('map.txt')
     g.add_monster(SelfPreservingMonster("selfpreserving", # name
                                         "S",              # avatar
