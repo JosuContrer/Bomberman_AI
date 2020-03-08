@@ -42,11 +42,16 @@ class QEntry:
 
 
 class TestCharacter(CharacterEntity):
-    colorGrid = False
     q_table = None
-    moving_alpha = False
 
+    debug_print = False
     show_rewards = False
+    colorGrid = False
+
+    moving_alpha = False
+    alpha = 0.8
+    gamma = 0.8
+    epsilon = 0
 
     give_rewards = [
         'life_penalty',
@@ -209,9 +214,9 @@ class TestCharacter(CharacterEntity):
     def qLearn(self, wrld, state):
 
         # constants
-        alpha = (1 - 0.000025 * self.q_table.size if self.q_table.size < 2000 else 0.5) if self.moving_alpha else 0.8
-        gamma = 0.8
-        epsilon = 0.01
+        alpha = (1 - 0.000025 * self.q_table.size if self.q_table.size < 2000 else 0.5) if self.moving_alpha else self.alpha
+        gamma = self.gamma
+        epsilon = self.epsilon
         action = (0, 0, -1)
 
         if random.uniform(0, 1) >= epsilon:
@@ -226,87 +231,99 @@ class TestCharacter(CharacterEntity):
                                 key_list.append(key)
 
                         action = random.choice(key_list)
-                        print(action, i.action_value[action])
+                        if self.debug_print:
+                            print(action, i.action_value[action])
 
                     else:
                         action = max(i.action_value, key=(lambda x: i.action_value[x]))
-                        print(action, i.action_value[action])
+                        if self.debug_print:
+                            print(action, i.action_value[action])
                         break
 
         if action == (0, 0, -1):
             action = random.choice(list(self.q_table[0].action_value.keys()))
-            print("rand", action)
+            if self.debug_print:
+                print("rand", action)
 
         action_backup = action
 
         if 'illegal_move' in self.give_rewards:
             if ((self.x + action[0]) >= wrld.width() or (self.x + action[0]) < 0) and (
                     (self.y + action[1]) >= wrld.height() or (self.y + action[1]) < 0):
-                print('illegal_move')
+                if self.debug_print:
+                    print('illegal_move')
                 action = random.choice(list(self.q_table[0].action_value.keys()))
-                print(action)
             elif (self.x + action[0]) >= wrld.width() or (self.x + action[0]) < 0:
-                print('illegal_move')
+                if self.debug_print:
+                    print('illegal_move')
                 action = (0, action[1], action[2])
-                print(action)
             elif (self.y + action[1]) >= wrld.height() or (self.y + action[1]) < 0:
-                print('illegal_move')
+                if self.debug_print:
+                    print('illegal_move')
                 action = (action[0], 0, action[2])
-                print(action)
             elif wrld.wall_at((self.x + action[0]), (self.y + action[1])):
-                print('wall_move')
+                if self.debug_print:
+                    print('wall_move')
                 action = random.choice(list(self.q_table[0].action_value.keys()))
-                print(action)
             elif wrld.wall_at((self.x + action[0]), (self.y)):
-                print('wall_move')
+                if self.debug_print:
+                    print('wall_move')
                 action = (0, action[1], action[2])
-                print(action)
             elif wrld.wall_at((self.x), (self.y + action[1])):
-                print('wall_move')
+                if self.debug_print:
+                    print('wall_move')
                 action = (action[0], 0, action[2])
-                print(action)
 
         sensed_world = SensedWorld.from_world(wrld)
         (sensed_world.me(self)).move(action[0], action[1])
         if action[2]:
             (sensed_world.me(self)).place_bomb()
         next_state, next_events = sensed_world.next()
-        reward = 5000 / wrld.scores[self.name] if 'life_penalty' in self.give_rewards else 0
+
+        reward = (5000 / wrld.scores[self.name] * 0.5) if 'life_penalty' in self.give_rewards else 0
 
         if len(next_events) > 0:
             for i in next_events:
                 print(i.tpe)
                 if 'wall_blow' in self.give_rewards and i.tpe == 0 and i.character.name == self.name:
-                    print('wall_blow')
+                    if self.debug_print:
+                        print('wall_blow')
                     reward += 10
                 if 'mon_blow' in self.give_rewards and i.tpe == 1 and i.character.name == self.name:
-                    print('mon_blow')
+                    if self.debug_print:
+                        print('mon_blow')
                     reward += 50
                 if i.tpe == 2:
                     if 'char_blow' in self.give_rewards and i.character.name == self.name and i.character.name != i.other.name:
-                        print('char_blow')
+                        if self.debug_print:
+                            print('char_blow')
                         reward += 100
                     elif 'self_blow' in self.give_rewards and i.character.name == self.name and i.character.name == i.other.name:
-                        print('self_blow')
+                        if self.debug_print:
+                            print('self_blow')
                         reward -= 500
                 if 'mon_die' in self.give_rewards and i.tpe == 3 and i.character.name == self.name:
-                    print('mon_die')
+                    if self.debug_print:
+                        print('mon_die')
                     reward -= 500
 
         elif 'explosion_move' in self.give_rewards and (next_state.explosion_at((self.x + action[0]), (self.y + action[1])) or wrld.explosion_at((self.x + action[0]), (self.y + action[1]))):
-            print('explosion_move')
+            if self.debug_print:
+                print('explosion_move')
             reward -= 500
 
         if 'exit' in self.give_rewards and self.heuristic(
                 ((self.x + action[0]), (self.y + action[1])), next_state.exitcell) == 0:
-            print('exit')
+            if self.debug_print:
+                print('exit')
             reward += 10000
 
         elif 'a_star_move' in self.give_rewards:
             temp_for_print = reward
             if 'a_star' in state:
                 if 'a_star_bomb' in self.give_rewards and wrld.wall_at(self.x + state['a_star'][0], self.y + state['a_star'][1]) and not state['bomb']:
-                    print('a_star_bomb')
+                    if self.debug_print:
+                        print('a_star_bomb')
                     reward += action[2] * 20
 
                 if (action[0], action[1]) != (0, 0):
@@ -322,7 +339,8 @@ class TestCharacter(CharacterEntity):
                     else:
                         reward -= 1
 
-                print('a_star (%d, %d) -> %d' % (state['a_star'][0], state['a_star'][1], reward - temp_for_print))
+                if self.debug_print:
+                    print('a_star (%d, %d) -> %d' % (state['a_star'][0], state['a_star'][1], reward - temp_for_print))
 
         next_state = self.wrld_to_state(next_state)
 
@@ -354,7 +372,6 @@ class TestCharacter(CharacterEntity):
                 old_value_backup = i.action_value[action_backup]
                 break
 
-        # print(old_value)
         next_max = 0
         for i in self.q_table:
             if i.state == next_state:
@@ -381,7 +398,6 @@ class TestCharacter(CharacterEntity):
                 new_entry.action_value[action_backup] = new_value_backup
             self.q_table = np.append(self.q_table, [new_entry])
 
-        print(reward)
         if self.show_rewards:
             file = open('rewards.csv', 'a')
             file.write('(' + str(self.x) + ' ' + str(self.y) + '),(' + str(action[0]) + ' ' + str(action[1]) + ' ' + str(action[2]) + '),' + str(reward) + ',\n')
@@ -399,28 +415,3 @@ class TestCharacter(CharacterEntity):
             self.place_bomb()
 
         np.save('brain.npy', self.q_table, allow_pickle=True)
-
-        # for i in self.q_table:
-        #     print(i.action_value)
-
-        # if ('m' in state.values()) or ('b' in state.values()) or ('x' in state.values()):
-        #     dx, dy, bomb = self.qLearn(wrld, state)
-        #     self.move(dx, dy)
-        #     if bomb:
-        #         self.place_bomb()
-        #     np.save('brain.npy', self.q_table, allow_pickle=True)
-        # else:
-        #     a_star = self.astar((self.x, self.y), wrld.exitcell, wrld, True)
-        #     if a_star:
-        #         print(a_star)
-        #         dx, dy = a_star[-1]
-        #         dx -= self.x
-        #         dy -= self.y
-        #         print(dx, dy)
-        #         self.move(dx, dy)
-        #         if wrld.wall_at(a_star[-1][0], a_star[-1][1]):
-        #             self.place_bomb()
-        #     else:
-        #         dx = wrld.exitcell[0] - self.x
-        #         dy = wrld.exitcell[1] - self.y
-        #         self.move(dx, dy)
