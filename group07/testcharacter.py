@@ -131,7 +131,7 @@ class TestCharacter(CharacterEntity):
             if i is not None and self.colorGrid:
                 self.set_cell_color(i[0], i[1], Fore.RED)
 
-        return [e for e in reversed(path)]
+        return path
 
     # step = {0: [(1.0, 428, -1, False)], #
     #         1: [(1.0, 228, -1, False)],
@@ -236,14 +236,12 @@ class TestCharacter(CharacterEntity):
             reward -= 10
         elif next_state.explosion_at((self.x + action[0]), (self.y + action[1])):
             reward -= 500
-        # elif next_state.monsters_at((self.x + action[0]), (self.y + action[1])):
-        #     reward -= 1000
         elif next_state.wall_at((self.x + action[0]), (self.y + action[1])):
             reward -= 10
 
-        for i in self.neighbors((self.x + action[0]), (self.y + action[1]), next_state, True):
+        for i in self.neighbors((self.x), (self.y), next_state, True):
             if next_state.monsters_at(i[0], i[1]):
-                reward -= 100
+                reward -= 1000
 
         if self.heuristic(
                 ((self.x + action[0]), (self.y + action[1])), next_state.exitcell) == 0:
@@ -326,7 +324,7 @@ class TestCharacter(CharacterEntity):
         # self.move(dx, dy)
         self.q_table = self.build_file(wrld)
         state = self.wrldToState(wrld)
-        if ('m' in state.values()) or ('x' in state.values()):
+        if ('m' in state.values()) or ('b' in state.values()) or ('x' in state.values()):
             dx, dy, bomb = self.qLearn(wrld, state)
             self.move(dx, dy)
             if bomb:
@@ -335,12 +333,13 @@ class TestCharacter(CharacterEntity):
         else:
             a_star = self.astar((self.x, self.y), wrld.exitcell, wrld, True)
             if a_star:
-                dx, dy = a_star[0]
-                dx = dx - self.x
-                dy = dy - self.y
-                print(self.x, self.y)
+                print(a_star)
+                dx, dy = a_star[-1]
+                dx -= self.x
+                dy -= self.y
+                print(dx, dy)
                 self.move(dx, dy)
-                if wrld.wall_at(self.x + dx, self.y + dy):
+                if wrld.wall_at(a_star[-1][0], a_star[-1][1]):
                     self.place_bomb()
             else:
                 dx = wrld.exitcell[0] - self.x
