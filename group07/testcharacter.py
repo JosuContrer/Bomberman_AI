@@ -51,7 +51,7 @@ class TestCharacter(CharacterEntity):
     moving_alpha = False
     alpha = 0.8
     gamma = 0.8
-    epsilon = 0
+    epsilon = 0.00
 
     give_rewards = [
         'life_penalty',
@@ -360,9 +360,6 @@ class TestCharacter(CharacterEntity):
 
                             elif (my == -action[1]) and (abs(mx - action[0]) < 2):
                                 reward += 1
-
-                            else:
-                                reward -= 1
 
         old_value = 0
         old_value_backup = 0
