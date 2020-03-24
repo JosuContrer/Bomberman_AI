@@ -1,7 +1,7 @@
 <p align="center"><img width=60% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/title.png"></p>
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-![Python](https://img.shields.io/badge/python-v3.6+-blue.svg)
+![Python](https://img.shields.io/badge/python-v3-blue.svg)
 [![Build Status](https://travis-ci.org/anfederico/Clairvoyant.svg?branch=master)](https://travis-ci.org/anfederico/Clairvoyant)
 ![Contributions welcome](https://img.shields.io/badge/contributions-welcome-orange.svg)
 
@@ -75,12 +75,17 @@ Variant 2 Demo 1           |  Variant 2 Demo 2         |  Variant 5 Demo
 :-------------------------:|:-------------------------:|:-------------------------:
 -<p><img width=50% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant2_sdemo.gif"></p>- | -<p><img width=50% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant2_sdemo2.gif"></p>- | -<p><img width=50% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant5_sdemo.gif"></p>-
 
+
+The plot below shows the averaged reward value for every 3 episodes, a total of 136 episodes. An episode in a representation of a complete game played, for bomberman a game starts with the character at position (0,0)  and ends if the character reaches the exit, is killed by a bomb, killed by a monster, or max time is reached. After episode 49 the agent is able to learn the best Q-values, therefore giving it the best action based on the current state. Before episode 49 the rewards were negative. They seem to fluctuate around the -25 starting value. This behavior is interesting since the rewards at first start to increase and then decrease to below the -25 reward value. After that they start to reach the -25 value and once they do they immediately jump to the final positive reward of 50. A complete period allows for the agent Scenario 1 Variant 5 to learn from the environment the best Q-values for the states and determine the best action to take. After the best policy is determined, the agent is able to reach the exit 90 % of the time.
+
 <p align="center"><img width=58% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant5_rewards_table.png"></p>
 
 #### Scenario 2
 Variant 2 Demo 1           |  Variant 2 Demo 2         
 :-------------------------:|:-------------------------:
 -<p><img width=32% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario2_variant2_learning_demo.gif"></p>- | -<p><img width=50% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario2_variant3_sdemo.gif"></p>-
+
+The plot below demonstrates an Agent that starts with an unpopulated Q-table (no states, no actions, and no Q-values) in Scenario 2 Variant 1-4. The hyperparameters were set to the following: learning rate of 0.8, discount factor of 0.8, and epsilon of 0. Rewards were unchanged as they are constants given by the environment. Figure 5 below shows a moving average of the reward value  for a total of 1,300 episodes. After episode 573 the agent starts to learn the Q-values that give the higher rewards. After episode 959 the rewards begin to stabilize around 90.
 
 <p align="center"><img width=58% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario2_variant4_rewards_table.png"></p>
 
