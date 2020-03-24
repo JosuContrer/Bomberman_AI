@@ -69,8 +69,8 @@ Reward values were assigned based on events that would occur in the next state. 
 
 ### Results
 
-Scenario 1
-:---------------------------------------------------------------------------------:
+#### Scenario 1
+
 Variant 2 Demo 1           |  Variant 2 Demo 2         |  Variant 5 Demo
 :-------------------------:|:-------------------------:|:-------------------------:
 -<p><img width=50% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant2_sdemo.gif"></p>- | -<p><img width=50% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant2_sdemo2.gif"></p>- | -<p><img width=50% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant5_sdemo.gif"></p>-
@@ -79,7 +79,7 @@ Variant 2 Demo 1           |  Variant 2 Demo 2         |  Variant 5 Demo
 #### Scenario 2
 Variant 2 Demo 1           |  Variant 2 Demo 2         
 :-------------------------:|:-------------------------:
--<p><img width=50% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant2_sdemo.gif"></p>- | -<p><img width=50% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant2_sdemo2.gif"></p>- | -<p><img width=50% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant5_sdemo.gif"></p>-
+-<p><img width=50% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario2_variant2_learning_demo.gif"></p>- | -<p><img width=50% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario2_variant3_sdemo.gif"></p>-
 
 ## Authors
 
