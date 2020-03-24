@@ -113,7 +113,9 @@ into an explosion cell (appears after a placed bomb explodes) or walking into a 
 ### Scenario 1
 
 The following animations demonstrate the trained Agent exiting successfully the maze while taking the fastest path and avoiding the monsters. Variant 5 shows the 
-Agent beating the hardest level in this scenario.
+Agent beating the hardest level in this scenario. **Note:** the video was taken with a slower frame rate and the Agent was running a lot faster. This resulted is a video 
+where the Agent seems to jump around, but this is not the case as it was able to move as the other two animations.  
+
 
 Variant 2 Demo 1           |  Variant 2 Demo 2         |  Variant 5 Demo
 :-------------------------:|:-------------------------:|:-------------------------:
@@ -133,8 +135,7 @@ best Q-values for the states and determine the best action to take. After the be
 #### Scenario 2
 
 The following animations show the trained Agent learning in Variant 5 and beating the game in Variant 3. The Agent was successful at getting to the exit till Variant 4, 
-but it was only able to beat Variant 5 one time. Note: the video was taken with a slower frame rate and the Agent was running a lot faster. This resulted is a video 
-where the Agent seems to jump around, but this is not the case as it was able to move as the other two animations.  
+but it was only able to beat Variant 5 one time. 
 
 Variant 5 Learning         |  Variant 3 Trained         
 :-------------------------:|:-------------------------:
