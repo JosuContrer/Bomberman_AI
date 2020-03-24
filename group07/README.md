@@ -67,21 +67,26 @@ As seen in the Figure, the overall view of the world is cropped to just the view
 
 Reward values were assigned based on events that would occur in the next state. For Bomberman, the reward of an action taken involves the presence of monsters, bombs, explosion blocks, walls, and other characters. For the purpose of creating the Q-table, arbitrary values were assigned to rewards depending on the action-state outcome associated with the reward. The general idea for assigning rewards is to have lethally bad moves to have a large negative value and winning or good moves to have large positive values. The reason for this arrangement is to both encourage “good” plays and discourage “bad” plays. In our case, “good” plays would be defined as making progress towards the exit in the map and “bad” plays would be self-destructive actions, which include blowing oneself by walking into an explosion cell (appears after a placed bomb explodes) or walking into a monster (occupying the same cell results in death).
 
-### Results
+## Results
+### Scenario 1
 
-#### Scenario 1
+The following animations demonstrate the trained Agent exiting successfully the maze while taking the fastest path and avoiding the monsters. Variant 5 shows the Agent beating the hardest level in this scenario.
 
 Variant 2 Demo 1           |  Variant 2 Demo 2         |  Variant 5 Demo
 :-------------------------:|:-------------------------:|:-------------------------:
 -<p><img width=50% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant2_sdemo.gif"></p>- | -<p><img width=50% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant2_sdemo2.gif"></p>- | -<p><img width=50% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant5_sdemo.gif"></p>-
 
+-Episode: is a representation of a complete game played, for bomberman a game starts with the character at position (0,0)  and ends if the character reaches the exit, is killed by a bomb, killed by a monster, or max time is reached.
 
-The plot below shows the averaged reward value for every 3 episodes, a total of 136 episodes. An episode in a representation of a complete game played, for bomberman a game starts with the character at position (0,0)  and ends if the character reaches the exit, is killed by a bomb, killed by a monster, or max time is reached. After episode 49 the agent is able to learn the best Q-values, therefore giving it the best action based on the current state. Before episode 49 the rewards were negative. They seem to fluctuate around the -25 starting value. This behavior is interesting since the rewards at first start to increase and then decrease to below the -25 reward value. After that they start to reach the -25 value and once they do they immediately jump to the final positive reward of 50. A complete period allows for the agent Scenario 1 Variant 5 to learn from the environment the best Q-values for the states and determine the best action to take. After the best policy is determined, the agent is able to reach the exit 90 % of the time.
+The plot below shows the averaged reward value for every 3 episodes, a total of 136 episodes. After episode 49 the agent is able to learn the best Q-values, therefore giving it the best action based on the current state. Before episode 49 the rewards were negative. They seem to fluctuate around the -25 starting value. This behavior is interesting since the rewards at first start to increase and then decrease to below the -25 reward value. After that they start to reach the -25 value and once they do they immediately jump to the final positive reward of 50. A complete period allows for the agent Scenario 1 Variant 5 to learn from the environment the best Q-values for the states and determine the best action to take. After the best policy is determined, the agent is able to reach the exit 90 % of the time.
 
 <p align="center"><img width=58% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant5_rewards_table.png"></p>
 
 #### Scenario 2
-Variant 2 Demo 1           |  Variant 2 Demo 2         
+
+The following animations show the trained Agent learning in Variant 5 and beating the game in Variant 3. The Agent was successful at getting to the exit till Variant 4, but it was only able to beat Variant 5 one time.  
+
+Variant 5 Learning         |  Variant 3 Trained         
 :-------------------------:|:-------------------------:
 -<p><img width=32% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario2_variant2_learning_demo.gif"></p>- | -<p><img width=50% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario2_variant3_sdemo.gif"></p>-
 
