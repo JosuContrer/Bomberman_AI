@@ -1,283 +1,165 @@
-# Required Software #
+<p align="center"><img width=60% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/title.png"></p>
 
-To run Bomberman, you'll need Python 3 with the `colorama` and `pygame`
-packages. To install them, type either
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+![Python](https://img.shields.io/badge/python-v3-blue.svg)
+[![Build Status](https://travis-ci.org/anfederico/Clairvoyant.svg?branch=master)](https://travis-ci.org/anfederico/Clairvoyant)
+![Contributions welcome](https://img.shields.io/badge/contributions-welcome-orange.svg)
 
-    pip install colorama pygame
-    
-if Python 3 is your default version, or
+## Overview
 
-    pip3 install colorama pygame
-    
-if you have both Python 2 and Python 3 installed on your system.
+The goal of this project was to build an AI agent using reinforcement learning to play the classic Bomberman game. The agent was capable
+ of beating each variant in the two scenarios given. This agent was also able to blow up walls, monsters, and and tried to get to the 
+ goal quickly to accomplish a better score.
 
-# Running Bomberman #
+This project was done to fulfill Professors Carlo Pinciroli's Introduction to AI course offered by at Worcester Polythecnic Institute
 
-Go into the folder `scenario1/` or `scenario2/`:
+## Required Software
+The only required software is Python 3 with the `colorama` and `pygame`
+packages. To install these packages, type
 
-    $ cd scenario1
+```python
+pip install colorama pygame                           
+```
 
-Both folders contain five Python files called `variant1.py`, `variant2.py`,
-`variant3.py`, `variant4.py`, and `variant5.py`. To run a specific variant, type
-one of these two commands, depending on whether your Python executable defaults
-to Python 3 or not:
+## Setup and Installation
 
-    $ python variant1.py
-    $ python3 variant1.py
+To run, setup, and understand this implementation of Bomberman  clone the following repo or click on this [link](https://github.com/NESTLab/CS4341-projects).
+ The cloned folder will contain two folders `Bomberman` and `ConnectN`. Click on the `Bomberman` folder and follow the setup instructions. You can further 
+ read to have a better understanding on how this python implementations works.
 
-# Game Rules #
+```
+git clone https://github.com/NESTLab/CS4341-projects.git                           
+```
 
-The game can be played in two modalities: escape mode and last-man-standing
-mode.
+After that clone this repo or download the zip and substitute the `groupNN` folder with the folder in this repo you downloaded. After that you are ready to 
+run this project.
 
-## Escape Mode ##
+## Introduction to the Bomberman Game
+Bomberman is a classic strategy maze game that consists of reaching the exit with the highest possible score. There are various implementations of this game. 
+This implementation of Bomberman consists of two different scenarios. Each has five variants with increasing difficulties. The two scenarios have their own 
+maze configuration, the variable that increases the difficulty is the types of monsters that are placed in each variant. There are three types of monsters: 
+random, self-preserving, and aggressive. The aggressive monster is able to increase its aggressiveness by the cells it is allowed to detect the character. 
+There also exists a third scenario that was not present in the code given, but it was mentioned that the classic game of Bomberman also allows for a scenario
+ with more than one character. In this last scenario the goal of staying alive as no exit exists and to blow up the other characters before yourself.  
 
-Your character must escape the world through the exit cell. The game ends when
-either of these conditions is true:
+## Reinforcement Q-Learning Design
+Q-learning is a type of model-free reinforcement learning algorithm. The decision to choose this particular algorithm was based on the need to build a learned
+ function to solve different variants of different scenarios, and to utilize reinforcement Q-learning. There are two world scenarios, each with 5 variants for
+  a total of 10 different world variations of Bomberman. As such, integrating a learning algorithm such as Q-learning is a preferred strategic decision since 
+  in theory, a learned solution can be obtained to solve all of the variants in a consistent manner. 
 
-1. The maximum number of steps (`max_time`) has expired.
-2. The character reaches the exit cell.
-3. The character is killed by a monster. This occurs when a monster occupies the
-   same cell as the character.
-4. The character is killed by the explosion of a bomb.
+For this project the moving average Q-learning equation and A star algorithm where implemented. 
+The Q-learning design was based on the article [Reinforcement Q-Learning with OpenAI Gym](https://www.learndatasci.com/tutorials/reinforcement-q-learning-scratch-python-openai-gym/) article.
+ The following equation demonstrates the the Q-value calculations.The A star implementation was adapted from the [Introduction to the A star Algorithm](https://www.redblobgames.com/pathfinding/a-star/introduction.html) article.
 
-Multiple players can be added to the world. In this case, the game ends when the
-last character exits the world or is killed.
+#### Equation Key
+- s: state
+- a: action
+- r: rewards given by world
+- alpha: learning rate
+- gamma: discounting factor
+- max(): returns action with max Q-value
 
-## Last-Man-Standing Mode ##
+#### Moving Average Equation
+<p align="center"><img width=50% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/moving_average.png"></p>
 
-In this modality there is no exit cell. The only way for a game to end is when a
-single character is left, or the maximum time has expired. This modality makes
-sense when the game starts with multiple players.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+### Q-table
+To create the Q-table used in the Bomberman algorithm, the actions were first formalized. In any given cell, the Bomberman has the option to stay 
+still (essentially passing a turn) or move to any of the eight surrounding cells. This gives a total of nine countable actions. The Bomberman also 
+has the ability to place a single bomb in its current cell, which can be performed along with any of the nine previous actions, which gives a total 
+of 18 possible actions at any given cell, which is not the same as legal actions, ie. moving into a cell out of bounds or occupied by a wall, and is 
+accounted for in the computation of the Q value. Each row entry in the table is identified by a state, which comes from the world environment, thus 
+giving N states for any of the 18 actions. Shown below in Figure 1 is the breakdown of the different actions and how they are read in the algorithm, 
+as well as an example Q-table.
 
-## Scores ##
+<p align="center"><img width=58% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/qtable.png"></p>
 
-Each character has a score calculated as follows:
-1. The score starts at `-max_time` points
-2. For each step the character is still alive, the score is increased by one point
-3. Every wall destroyed awards 10 extra points
-4. Every monster killed awards 50 extra points
-5. Every character killed awards 100 extra points
-6. If your character escapes the world, it gets `2 * time` extra points, where `time` is the time left
+For each possible movement (action) to the cells surrounding the bomberman’s cell, the direction can be indicated as a change in the vertical and 
+horizontal axis, x and y respectively. A -1 represents moving to the left or up, a 1 represents moving to the right or down, and a 0 represents no 
+motion in the x or y axis. To capture bomb placement, 1 represents the action to place a bomb and 0 to not place a bomb (default).
 
-# Coding Your Agent #
+### World to State 
+The state of the Bomberman world or environment is dependent on the location of the main character, any other character that is on the board, any 
+monsters, any walls, any bombs or explosion cells, and the location of the exit. This is captured by the observable field or the view. However, given 
+the size of the game board and all the cells that can be occupied by characters, monsters, bombs, and explosions, there is an obscenely large number of 
+combinations and thus a large number of states to be accounted for. The need to account for variations in wall placement is necessary due to different 
+world variations between the given scenarios. When constructing Q-tables the biggest challenge is to formalize the world as a state. For the first 
+implementation of the agent the state of the Q-table saved the entire world as a state. However, this state proved to have too many variables that made 
+learning from the state near impossible. There are issue with tracking all of these states, which primarily include length processing time of looking up 
+and updating values on the Q-table even if it is assumed that all possible states have been recorded, as well as the constraint of file size with storing 
+all of the states as a look-up table to be used for all 10 variants. To avoid having to store a Q-table with an infinitely large number of states in a large 
+file, the view of the world was limited to be around the main character in the environment. Discretizing the limited view produces a state that captures only 
+the character, monsters, walls, bombs, and explosion cells inside the view as opposed to the view of the entire game. Shown below is a summarized process of 
+simplify state extraction from the given world.
 
-## Relevant Definitions ##
+<p align="center"><img width=58% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/world_to_state.png"></p>
 
-Refer to the [example skeleton
-code](https://github.com/NESTLab/CS4341-projects/blob/master/Bomberman/groupNN/testcharacter.py),
-also reported here:
+As seen in the Figure, the overall view of the world is cropped to just the view around the character, which is passed into a function that discretizes the 
+view into a state. A cell is marked for example with a ‘w’ if there is a wall, with ‘m’ if  there is a monster, and with ‘o’ if the cell is otherwise unoccupied. 
+Increasing the size of this view will allow for taking into account more possibles and thus tracing more states. This would be beneficial if computing time and 
+storage did not factor into the overall concern for functional performance for the project.
 
-    # This is necessary to find the main code
-    import sys
-    sys.path.insert(0, '../bomberman')
-    # Import necessary stuff
-    from entity import CharacterEntity
-    from colorama import Fore, Back
-    
-    class TestCharacter(CharacterEntity):
-    
-        def do(self, wrld):
-            pass
+### World Rewards
 
-This is the minimal amount of code to have a still character in the
-environment. The method `CharacterEntity.do(self, wrld)` is the only one that
-you have to implement to have your character do useful stuff.
+Reward values were assigned based on events that would occur in the next state. For Bomberman, the reward of an action taken involves the presence of monsters, 
+bombs, explosion blocks, walls, and other characters. For the purpose of creating the Q-table, arbitrary values were assigned to rewards depending on the 
+action-state outcome associated with the reward. The general idea for assigning rewards is to have lethally bad moves to have a large negative value and winning 
+or good moves to have large positive values. The reason for this arrangement is to both encourage “good” plays and discourage “bad” plays. In our case, “good” 
+plays would be defined as making progress towards the exit in the map and “bad” plays would be self-destructive actions, which include blowing oneself by walking 
+into an explosion cell (appears after a placed bomb explodes) or walking into a monster (occupying the same cell results in death).
 
-The parameter `wrld` has type `SensedWorld` (definition
-[here](https://github.com/NESTLab/CS4341-projects/blob/master/Bomberman/bomberman/sensed_world.py)),
-which in turn is a subclass of `World` (definition
-[here](https://github.com/NESTLab/CS4341-projects/blob/master/Bomberman/bomberman/world.py)).
+## Results
+### Scenario 1
 
-The most useful methods and attributes in this class are the following:
-- `wrld.width()`: returns the width of the world
-- `wrld.height()`: returns the height of the world
-- `wrld.empty_at(x, y)`: returns `True` if the cell `(x,y)` is empty
-- `wrld.exit_at(x, y)`: returns `True` if the cell `(x,y)` is the exit
-- `wrld.wall_at(x, y)`: returns `True` if the cell `(x,y)` is a wall
-- `wrld.bomb_at(x, y)`: returns a `BombEntity` object if the cell `(x,y)` is occupied by a bomb; `None` otherwise
-- `wrld.explosion_at(x, y)`: returns an `ExplosionEntity` object if the cell `(x,y)` is occupied by an explosion; `None` otherwise
-- `wrld.monsters_at(x, y)`: returns a list of `MonsterEntity` objects if the cell `(x,y)` is occupied by monsters; the empty list `[]` otherwise
-- `wrld.characters_at(x, y)`: returns a list of `CharacterEntity` objects if the cell `(x,y)` is occupied by characters; the empty list `[]` otherwise
-- `wrld.printit()`: prints the current state of the world
-- `wrld.me(character)`: returns the object in the world that refers to the state of the current character. From your method `go()` call it as follows: `wrld.me(self)`
-- `wrld.scores` is a dictionary `{ character_name : score }` that contains the score of every character.
+The following animations demonstrate the trained Agent exiting successfully the maze while taking the fastest path and avoiding the monsters. Variant 2 below has 
+two animations (demo 1 and 2) to show two different Q-tables trained on the same Variant and the two different solutions learnt by the Agent. Variant 5 shows the 
+Agent beating the hardest level in this scenario. **Note:** the video for Variant 5 below was taken with a slower frame rate and the Agent was running a lot faster. This resulted is a video 
+where the Agent seems to jump around, but this is not the case as it was able to move as the other two animations.  
 
-## Available Actions ##
 
-Your character can perform two basic actions: moving and placing a bomb.
+Variant 2 Demo 1           |  Variant 2 Demo 2         |  Variant 5 Demo
+:-------------------------:|:-------------------------:|:-------------------------:
+-<p><img width=50% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant2_sdemo.gif"></p>- | -<p><img width=50% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant2_sdemo2.gif"></p>- | -<p><img width=50% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant5_sdemo.gif"></p>-
 
-To move, use the method `CharacterEntity.move(dx,dy)`. This method sets the
-direction of motion to `(dx,dy)`. The values of `dx` and `dy` can be `-1`, `0`,
-or `1`. Any other value is clamped to those three values, so agents can only
-move by at most one cell per step. 8-neighborhood motion is allowed. Example:
+* **Episode:** is a representation of a complete game played, for bomberman a game starts with the character at position (0,0)  and ends if the character reaches 
+the exit, is killed by a bomb, killed by a monster, or max time is reached.
 
-    class TestCharacter(CharacterEntity):
-        def do(self, wrld):
-            # Moves one cell to the right
-            self.move(1,0)
+The plot below shows the averaged reward value for every 3 episodes, a total of 136 episodes. After episode 49 the agent is able to learn the best Q-values, 
+therefore giving it the best action based on the current state. Before episode 49 the rewards were negative. They seem to fluctuate around the -25 starting value. 
+This behavior is interesting since the rewards at first start to increase and then decrease to below the -25 reward value. After that they start to reach the -25 value 
+and once they do they immediately jump to the final positive reward of 50. A complete period allows for the agent Scenario 1 Variant 5 to learn from the environment the 
+best Q-values for the states and determine the best action to take. After the best policy is determined, the agent is able to reach the exit 90 % of the time.
 
-Once you set a direction for the agent, that direction is kept in subsequent
-steps until you change it. To stop the agent, you must explicitly call
-`self.move(0,0)`.
+<p align="center"><img width=58% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant5_rewards_table.png"></p>
 
-To place a bomb, call `CharacterEntity.place_bomb()`. The bomb is placed at the
-current position of the character. The bomb will start ticking and eventually
-will explode when the timer expires. When a bomb explodes, it creates a number
-of explosion cells. If a wall, a character, or a monster are touched by an
-explosion cell, they are removed from the board. Bombs, exit cells, and other
-explosions are immune to explosion cells. A character can have only one bomb
-ticking at any given time. Any attempt to place a bomb when another one has been
-placed by the same character is ignored. The action of placing a bomb is reset
-at each time step, whether or not the action was successful.
+#### Scenario 2
 
-## Searching through World Configurations ##
+The following animations show the trained Agent learning in Variant 5 and beating the game in Variant 3. The Agent was successful at getting to the exit till Variant 4, 
+but it was only able to beat Variant 5 one time. 
 
-In your code you might need to search through several world states. You have two
-methods to do this:
-- `SensedWorld.from_world(w)` takes a `World` object (either `RealWorld` or
-  `SensedWorld`) and clones it. All the data about characters, monsters, bombs,
-  explosions, etc is cloned into new objects. This means that you can modify the
-  returned world without affecting other existing world instances. An important
-  aspect of this operation is that characters and monsters are not cloned.
-  Rather, each character in the real world is cloned into a dummy
-  `CharacterEntity` object, and each monster is cloned into a dummy
-  `MonsterEntity`. This is to prevent your code from modifying or peeking other
-  agents' private information.
-- `SensedWorld.next()` returns a tuple `(new_world, events)`. The first element
-  of the tuple is a clone created by `SensedWorld.from_world()` advanced by one
-  step. In `new_world` time has decreased by one, bombs whose timer expired have
-  exploded, explosions have disappeared, etc. according to the logic of the
-  game. If you modified the actions of the agents (e.g, you called `move()` on a
-  monster), `SensedWorld.next()` will take care of that, too. The second element
-  in the tuple, `events`, is a list of events that occurred in that world
-  configuration.
-  
-### About Events ###
+Variant 5 Learning         |  Variant 3 Trained         
+:-------------------------:|:-------------------------:
+-<p><img width=32% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario2_variant2_learning_demo.gif"></p>- | -<p><img width=50% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario2_variant3_sdemo.gif"></p>-
 
-The relevant definitions for events is in
-[events.py](https://github.com/NESTLab/CS4341-projects/blob/master/Bomberman/bomberman/events.py). An
-event is an object of the `Event` class. The class contains the following attributes:
+The plot below demonstrates an Agent that starts with an unpopulated Q-table (no states, no actions, and no Q-values) in Scenario 2 Variant 1-4. The hyperparameters 
+were set to the following: learning rate of 0.8, discount factor of 0.8, and epsilon of 0. Rewards were unchanged as they are constants given by the environment. Figure 5 
+below shows a moving average of the reward value  for a total of 1,300 episodes. After episode 573 the agent starts to learn the Q-values that give the higher rewards. 
+After episode 959 the rewards begin to stabilize around 90.
 
-- `Event.tpe`: the type of the event. It is one of `Event.BOMB_HIT_WALL`,
-  `Event.BOMB_HIT_MONSTER`, `Event.BOMB_HIT_CHARACTER`,
-  `Event.CHARACTER_KILLED_BY_MONSTER`, `Event.CHARACTER_FOUND_EXIT`.
-- `Event.character`: the character the event refers to:
-  - For `Event.BOMB_HIT_WALL`, `character` is the owner of the bomb
-  - For `Event.BOMB_HIT_MONSTER`, `character` is the owner of the bomb
-  - For `Event.BOMB_HIT_CHARACTER`, `character` is the owner of the bomb
-  - For `Event.CHARACTER_KILLED_BY_MONSTER`, `character` is the killed one
-  - For `Event.CHARACTER_FOUND_EXIT`, `character` is the escaped one
-- `Event.other`: the character or monster the event refers to:
-  - For `Event.BOMB_HIT_WALL`, `other` is `None`
-  - For `Event.BOMB_HIT_MONSTER`, `other` is the killed monster
-  - For `Event.BOMB_HIT_CHARACTER`, `other` is the killed character
-  - For `Event.CHARACTER_KILLED_BY_MONSTER`, `other` is the monster
-  - For `Event.CHARACTER_FOUND_EXIT`, `other` is `None`
-  
-You can print an event `e` simply writing `print(e)`.
+<p align="center"><img width=58% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario2_variant4_rewards_table.png"></p>
 
-### Example: Searching through States ###
+* **Important Note:** When training an Agent remember to save the "brain" (Q-table) when it is successfull. This helps when trying recreate the the Agent beating each
+ variant in both scenarios. It also allows you to screen record it to be able to show it in reports and github readme's like this one. That is why Variants 4 and 5 of 
+ Scenario 1 are not showed in the animations above.
 
-Say that you want to loop through all the possible 8-moves of a monster, and
-evaluate each of them. You'd write something like this:
+## Authors
 
-    class TestCharacter(CharacterEntity):
-        def do(self, wrld):
-            #
-            # Get first monster in the world
-            #
-            m = next(iter(wrld.monsters().values()))
-            #
-            # Go through the possible 8-moves of the monster
-            #
-            # Loop through delta x
-            for dx in [-1, 0, 1]:
-                # Avoid out-of-bound indexing
-                if (m.x+dx >=0) and (m.x+dx < wrld.width()):
-                    # Loop through delta y
-                    for dy in [-1, 0, 1]:
-                        # Make sure the monster is moving
-                        if (dx != 0) or (dy != 0):
-                            # Avoid out-of-bound indexing
-                            if (m.y+dy >=0) and (m.y+dy < wrld.height()):
-                                # No need to check impossible moves
-                                if not wrld.wall_at(m.x+dx, m.y+dy):
-                                    # Set move in wrld
-                                    m.move(dx, dy)
-                                    # Get new world
-                                    (newwrld,events) = wrld.next()
-                                    # TODO: do something with newworld and events
+* **Nicholas Delli Carpini**
+* **Josue Contreras**
+* **Justin Cheng**
 
-## Visual Debugging ##
+## Acknowledgments
 
-The game offers a simple way to mark the cells for debugging purposes. This
-could be useful, for instance, to visually mark the path A* has found. To mark a
-cell, use `CharacterEntity.set_cell_color(x,y,color)`:
-
-    # Import color definitions
-    from colorama import Fore, Back
-    
-    class TestCharacter(CharacterEntity):
-        def do(self, wrld):
-            # ... some code
-            # Color cell (2,3)
-            self.set_cell_color(2, 3, Fore.RED + Back.GREEN)
-            # ... more code
-
-Refer to the [documentation of Colorama](https://pypi.org/project/colorama/) for
-a list of available colors.
-
-For example, this code marks the entire top row of the world:
-
-    # Import color definitions
-    from colorama import Fore, Back
-    
-    class TestCharacter(CharacterEntity):
-        def do(self, wrld):
-            for x in range(wrld.width()):
-                self.set_cell_color(x, 0, Fore.RED + Back.GREEN)
-
-Notice that the marked cells are overwritten by walls, bombs, explosions,
-monsters, and characters.
-
-# Map Format #
-
-You can modify the maps to change their configuration. The standard maps that
-are given to you are those that define the goals of your work, but if you want
-to play around other maps for testing purposes, the format is as follows.
-
-The first four lines must be in format `param value`, where `value` is a
-positive integer. For example:
-
-    max_time 100
-    bomb_time 2
-    expl_duration 3
-    expl_range 4
-
-This configures the game as follows:
-- The maximum time to complete the scenario is 100 steps
-- The time a bomb takes to explode is 2 steps
-- An explosion stays in the map for 3 steps
-- The explosion range around the bomb is 4 cells
-
-These four lines are followed by the grid configuration. For example:
-
-    +----------+
-    |         E|
-    |WWWWW     |
-    |       WWW|
-    +----------+
-
-- The grid must be composed of a top line `+---+` with as many `-` as
-wanted. The number of `-` of the first line defines the width of the world.
-- Every subsequent line must start and end with `|`, with as many characters in
-between to match the width defined by the first line.
-- The last line must be identical to the first line.
-- The allowed characters between the top and bottom lines are spaces (for
-  walkable cells), `W` for walls, and `E` for the exit cell. Only one exit cell
-  is allowed in any map. Maps can also have no exit cells, and that corresponds
-  to the Last-Man-Standing mode.
-
-Any character or monster must be added in a Python file that runs the scenario.
-
+* Reinforcement Q-Learning with OpenAI Gym [article](https://www.learndatasci.com/tutorials/reinforcement-q-learning-scratch-python-openai-gym/)
+* Introduction to the A star Algorithm [article](https://www.redblobgames.com/pathfinding/a-star/introduction.html)
