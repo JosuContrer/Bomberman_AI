@@ -75,11 +75,15 @@ Variant 2 Demo 1           |  Variant 2 Demo 2         |  Variant 5 Demo
 :-------------------------:|:-------------------------:|:-------------------------:
 -<p><img width=50% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant2_sdemo.gif"></p>- | -<p><img width=50% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant2_sdemo2.gif"></p>- | -<p><img width=50% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant5_sdemo.gif"></p>-
 
+<p align="center"><img width=58% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant5_rewards_table.png"></p>
 
 #### Scenario 2
 Variant 2 Demo 1           |  Variant 2 Demo 2         
 :-------------------------:|:-------------------------:
 -<p><img width=32% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario2_variant2_learning_demo.gif"></p>- | -<p><img width=50% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario2_variant3_sdemo.gif"></p>-
+
+<p align="center"><img width=58% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario2_variant4_rewards_table.png"></p>
+
 
 ## Authors
 
