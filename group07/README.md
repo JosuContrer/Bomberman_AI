@@ -11,21 +11,20 @@ The goal of this project was to build an AI agent using reinforcement learning t
 
 This project was done to fulfill Professors Carlo Pinciroli's Introduction to AI course offered by at Worcester Polythecnic Institute
 
-## Setup and Installation
-
-To run, setup, and understand this implementation of Bomberman  clone the following repo or click on this [link](https://github.com/NESTLab/CS4341-projects). The cloned folder will contain two folders `Bomberman` and `ConnectN`. Click on the `Bomberman` folder and follow the setup instructions. You can further read to have a better understanding on how this python implementations works.
-
-```
-git clone https://github.com/NESTLab/CS4341-projects.git                           
-```
-
-
 ## Required Software
 The only required software is Python 3 with the `colorama` and `pygame`
 packages. To install these packages, type
 
 ```python
 pip install colorama pygame                           
+```
+
+## Setup and Installation
+
+To run, setup, and understand this implementation of Bomberman  clone the following repo or click on this [link](https://github.com/NESTLab/CS4341-projects). The cloned folder will contain two folders `Bomberman` and `ConnectN`. Click on the `Bomberman` folder and follow the setup instructions. You can further read to have a better understanding on how this python implementations works.
+
+```
+git clone https://github.com/NESTLab/CS4341-projects.git                           
 ```
 
 ## Introduction to the Bomberman Game
@@ -70,7 +69,10 @@ Reward values were assigned based on events that would occur in the next state. 
 
 ### Results
 
+#### Scenario 1
+<p align="center"><img width=58% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant2_sdeno2.gif"></p>
 
+#### Scenario 2
 
 ## Authors
 
@@ -81,3 +83,4 @@ Reward values were assigned based on events that would occur in the next state. 
 ## Acknowledgments
 
 * Reinforcement Q-Learning with OpenAI Gym [article](https://www.learndatasci.com/tutorials/reinforcement-q-learning-scratch-python-openai-gym/)
+* Introduction to the A star Algorithm [article](https://www.redblobgames.com/pathfinding/a-star/introduction.html)
