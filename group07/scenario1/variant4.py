@@ -40,4 +40,5 @@ def run_game():
     g.go(1)
 
 for i in range(100):
+    print("Episode ", i+1)
     run_game()

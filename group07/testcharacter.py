@@ -11,6 +11,7 @@ from sensed_world import SensedWorld
 from colorama import Fore, Back
 import math
 from colorama import Fore, Back
+from events import Event
 
 
 class QEntry:
@@ -44,14 +45,17 @@ class QEntry:
 class TestCharacter(CharacterEntity):
     q_table = None
 
-    debug_print = False
+    debug_print = True
     show_rewards = False
     colorGrid = False
+
+    train = True
+    add_monster_move = True
 
     moving_alpha = False
     alpha = 0.8
     gamma = 0.8
-    epsilon = 0.00
+    epsilon = 0.0
 
     give_rewards = [
         'life_penalty',
@@ -190,8 +194,8 @@ class TestCharacter(CharacterEntity):
                 elif wrld.monsters_at((self.x + x), (self.y + y)) and 'monster' in self.view_cats:
                     state_dic[(x, y)] = 'm'
 
-                elif wrld.characters_at((self.x + x), (self.y + y)) and (x, y) != (0, 0) and 'character' in self.view_cats:
-                    state_dic[(x, y)] = 'm'
+                # elif wrld.characters_at((self.x + x), (self.y + y)) and (x, y) != (0, 0) and 'character' in self.view_cats:
+                #     state_dic[(x, y)] = 'm'
 
                 elif wrld.bomb_at((self.x + x), (self.y + y)) and 'bomb' in self.view_cats:
                     state_dic[(x, y)] = 'b'
@@ -214,7 +218,7 @@ class TestCharacter(CharacterEntity):
     def qLearn(self, wrld, state):
 
         # constants
-        alpha = (1 - 0.000025 * self.q_table.size if self.q_table.size < 2000 else 0.5) if self.moving_alpha else self.alpha
+        alpha = self.alpha
         gamma = self.gamma
         epsilon = self.epsilon
         action = (0, 0, -1)
@@ -240,164 +244,235 @@ class TestCharacter(CharacterEntity):
                             print(action, i.action_value[action])
                         break
 
-        if action == (0, 0, -1):
-            action = random.choice(list(self.q_table[0].action_value.keys()))
-            if self.debug_print:
-                print("rand", action)
-
-        action_backup = action
-
-        if 'illegal_move' in self.give_rewards:
-            if ((self.x + action[0]) >= wrld.width() or (self.x + action[0]) < 0) and (
-                    (self.y + action[1]) >= wrld.height() or (self.y + action[1]) < 0):
-                if self.debug_print:
-                    print('illegal_move')
+        if self.train:
+            if action == (0, 0, -1):
                 action = random.choice(list(self.q_table[0].action_value.keys()))
-            elif (self.x + action[0]) >= wrld.width() or (self.x + action[0]) < 0:
                 if self.debug_print:
-                    print('illegal_move')
-                action = (0, action[1], action[2])
-            elif (self.y + action[1]) >= wrld.height() or (self.y + action[1]) < 0:
-                if self.debug_print:
-                    print('illegal_move')
-                action = (action[0], 0, action[2])
-            elif wrld.wall_at((self.x + action[0]), (self.y + action[1])):
-                if self.debug_print:
-                    print('wall_move')
-                action = random.choice(list(self.q_table[0].action_value.keys()))
-            elif wrld.wall_at((self.x + action[0]), (self.y)):
-                if self.debug_print:
-                    print('wall_move')
-                action = (0, action[1], action[2])
-            elif wrld.wall_at((self.x), (self.y + action[1])):
-                if self.debug_print:
-                    print('wall_move')
-                action = (action[0], 0, action[2])
+                    print("rand", action)
 
-        sensed_world = SensedWorld.from_world(wrld)
-        (sensed_world.me(self)).move(action[0], action[1])
-        if action[2]:
-            (sensed_world.me(self)).place_bomb()
-        next_state, next_events = sensed_world.next()
+            action_backup = action
 
-        reward = (5000 / wrld.scores[self.name] * 0.5) if 'life_penalty' in self.give_rewards else 0
-
-        if len(next_events) > 0:
-            for i in next_events:
-                print(i.tpe)
-                if 'wall_blow' in self.give_rewards and i.tpe == 0 and i.character.name == self.name:
+            if 'illegal_move' in self.give_rewards:
+                if ((self.x + action[0]) >= wrld.width() or (self.x + action[0]) < 0) and (
+                        (self.y + action[1]) >= wrld.height() or (self.y + action[1]) < 0):
                     if self.debug_print:
-                        print('wall_blow')
-                    reward += 10
-                if 'mon_blow' in self.give_rewards and i.tpe == 1 and i.character.name == self.name:
+                        print('illegal_move')
+                    action = random.choice(list(self.q_table[0].action_value.keys()))
+                elif (self.x + action[0]) >= wrld.width() or (self.x + action[0]) < 0:
                     if self.debug_print:
-                        print('mon_blow')
-                    reward += 50
-                if i.tpe == 2:
-                    if 'char_blow' in self.give_rewards and i.character.name == self.name and i.character.name != i.other.name:
+                        print('illegal_move')
+                    action = (0, action[1], action[2])
+                elif (self.y + action[1]) >= wrld.height() or (self.y + action[1]) < 0:
+                    if self.debug_print:
+                        print('illegal_move')
+                    action = (action[0], 0, action[2])
+                elif wrld.wall_at((self.x + action[0]), (self.y + action[1])):
+                    if self.debug_print:
+                        print('wall_move')
+                    action = random.choice(list(self.q_table[0].action_value.keys()))
+                elif wrld.wall_at((self.x + action[0]), (self.y)):
+                    if self.debug_print:
+                        print('wall_move')
+                    action = (0, action[1], action[2])
+                elif wrld.wall_at((self.x), (self.y + action[1])):
+                    if self.debug_print:
+                        print('wall_move')
+                    action = (action[0], 0, action[2])
+
+            sensed_world = SensedWorld.from_world(wrld)
+            (sensed_world.me(self)).move(action[0], action[1])
+            if action[2]:
+                (sensed_world.me(self)).place_bomb()
+            next_state, next_events = sensed_world.next()
+
+            reward = (5000 / wrld.scores[self.name] * 0.5) if 'life_penalty' in self.give_rewards else 0
+
+            if len(next_events) > 0:
+                for i in next_events:
+                    if i.tpe == Event.CHARACTER_FOUND_EXIT:
+                        print("Found Exit!!!!!!!!!!!!!!!!!")
+                    if 'wall_blow' in self.give_rewards and i.tpe == 0 and i.character.name == self.name:
                         if self.debug_print:
-                            print('char_blow')
-                        reward += 100
-                    elif 'self_blow' in self.give_rewards and i.character.name == self.name and i.character.name == i.other.name:
+                            print('wall_blow')
+                        reward += 10
+                    if 'mon_blow' in self.give_rewards and i.tpe == 1 and i.character.name == self.name:
                         if self.debug_print:
-                            print('self_blow')
+                            print('mon_blow')
+                        reward += 50
+                    if i.tpe == 2:
+                        if 'char_blow' in self.give_rewards and i.character.name == self.name and i.character.name != i.other.name:
+                            if self.debug_print:
+                                print('char_blow')
+                            reward += 100
+                        elif 'self_blow' in self.give_rewards and i.character.name == self.name and i.character.name == i.other.name:
+                            if self.debug_print:
+                                print('self_blow')
+                            reward -= 500
+                    if 'mon_die' in self.give_rewards and i.tpe == 3 and i.character.name == self.name:
+                        if self.debug_print:
+                            print('mon_die')
                         reward -= 500
-                if 'mon_die' in self.give_rewards and i.tpe == 3 and i.character.name == self.name:
+
+            elif 'explosion_move' in self.give_rewards and (next_state.explosion_at((self.x + action[0]), (self.y + action[1])) or wrld.explosion_at((self.x + action[0]), (self.y + action[1]))):
+                if self.debug_print:
+                    print('explosion_move')
+                reward -= 500
+
+            if 'exit' in self.give_rewards and self.heuristic(
+                    ((self.x + action[0]), (self.y + action[1])), next_state.exitcell) == 0:
+                if self.debug_print:
+                    print('exit')
+                reward += 10000
+
+            elif 'a_star_move' in self.give_rewards:
+                temp_for_print = reward
+                if 'a_star' in state:
+                    if 'a_star_bomb' in self.give_rewards and wrld.wall_at(self.x + state['a_star'][0], self.y + state['a_star'][1]) and not state['bomb']:
+                        if self.debug_print:
+                            print('a_star_bomb')
+                        reward += action[2] * 20
+
+                    if (action[0], action[1]) != (0, 0):
+                        if (state['a_star'][0] == action[0]) and (state['a_star'][1] == action[1]):
+                            reward += 3
+
+                        elif (state['a_star'][0] == action[0]) and (abs(state['a_star'][1] - action[1]) < 2):
+                            reward += 1
+
+                        elif (state['a_star'][1] == action[1]) and (abs(state['a_star'][0] - action[0]) < 2):
+                            reward += 1
+
+                        else:
+                            reward -= 1
+
                     if self.debug_print:
-                        print('mon_die')
-                    reward -= 500
+                        print('a_star (%d, %d) -> %d' % (state['a_star'][0], state['a_star'][1], reward - temp_for_print))
 
-        elif 'explosion_move' in self.give_rewards and (next_state.explosion_at((self.x + action[0]), (self.y + action[1])) or wrld.explosion_at((self.x + action[0]), (self.y + action[1]))):
-            if self.debug_print:
-                print('explosion_move')
-            reward -= 500
+            # Current State
+            curr_state = state
 
-        if 'exit' in self.give_rewards and self.heuristic(
-                ((self.x + action[0]), (self.y + action[1])), next_state.exitcell) == 0:
-            if self.debug_print:
-                print('exit')
-            reward += 10000
+            # Next state is created here
+            next_state = self.wrld_to_state(next_state)
 
-        elif 'a_star_move' in self.give_rewards:
-            temp_for_print = reward
-            if 'a_star' in state:
-                if 'a_star_bomb' in self.give_rewards and wrld.wall_at(self.x + state['a_star'][0], self.y + state['a_star'][1]) and not state['bomb']:
+            if self.add_monster_move:
+                ######## States are compared ##########
+                # Monster position tracking
+                (mon_curr_x, mon_curr_y) = (0,0)
+                (mon_next_x, mon_next_y) = (0,0)
+                offset_x = 4
+                offset_y = 4
+
+                # Current State
+                curr_state_list = []
+                for y in range(-3, 4):
+                    row = []
+                    for x in range(-3, 4):
+                        state_item = state[(x,y)]
+                        row.append(state[(x, y)])
+
+                        if state_item == 'm':
+                            (mon_curr_x, mon_curr_y) = (x+offset_x,y+offset_y)
+                    curr_state_list.append(row)
+
+                # Next State
+                next_state_list = []
+                for y in range(-3, 4):
+                    row = []
+                    for x in range(-3, 4):
+                        state_item = next_state[(x,y)]
+                        row.append(next_state[(x, y)])
+                        if state_item == 'm':
+                            (mon_next_x, mon_next_y) = (x+offset_x,y+offset_y)
+                    next_state_list.append(row)
+
+                print("current monster:", mon_curr_x , mon_curr_y)
+                print("next monster:", mon_next_x, mon_next_y)
+
+                # Check monster movement towards character
+                current_monster_to_character = self.heuristic((offset_x, offset_y), (mon_curr_x, mon_curr_y))
+                next_monster_to_character = self.heuristic((offset_x, offset_y), (mon_next_x, mon_next_y))
+
+                # Check if monster moved in either axis
+                (mon_dx,mon_dy) = (mon_curr_x - mon_next_x, mon_curr_y - mon_next_y)
+                if abs(mon_dx) == 1 or abs(mon_dy) == 1:
                     if self.debug_print:
-                        print('a_star_bomb')
-                    reward += action[2] * 20
+                        print("MONSTER MOVED")
+                    if next_monster_to_character < current_monster_to_character:
+                        if self.debug_print:
+                            print("MONSTER CLOSER TO ME")
+                        reward -= 5
 
-                if (action[0], action[1]) != (0, 0):
-                    if (state['a_star'][0] == action[0]) and (state['a_star'][1] == action[1]):
-                        reward += 3
+                print("monster move: ", mon_dx, mon_dy)
+                print("current mc: ", current_monster_to_character, "next mc: ", next_monster_to_character)
+                print("next action: ", action[0], action[1])
 
-                    elif (state['a_star'][0] == action[0]) and (abs(state['a_star'][1] - action[1]) < 2):
-                        reward += 1
-
-                    elif (state['a_star'][1] == action[1]) and (abs(state['a_star'][0] - action[0]) < 2):
-                        reward += 1
-
-                    else:
-                        reward -= 1
 
                 if self.debug_print:
-                    print('a_star (%d, %d) -> %d' % (state['a_star'][0], state['a_star'][1], reward - temp_for_print))
+                    print("Current State Character View Map")
+                    for row in curr_state_list:
+                        print(row)
 
-        next_state = self.wrld_to_state(next_state)
+                    print("Next State Character View Map")
+                    for row in next_state_list:
+                        print(row)
 
-        if 'mon_move' in self.give_rewards:
-            if 'm' in next_state.values():
-                for key, value in next_state.items():
-                    if value == 'm':
-                        mx = 1 if key[0] > 0 else (-1 if key[0] < 0 else 0)
-                        my = 1 if key[1] > 0 else (-1 if key[1] < 0 else 0)
 
-                        if (action[0], action[1]) != (0, 0):
-                            if (mx == -action[0]) and (my == -action[1]):
-                                reward += 3
 
-                            elif (mx == -action[0]) and (abs(my - action[1]) < 2):
-                                reward += 1
+            # Manage rewards when a monster is seen
+            if 'mon_move' in self.give_rewards:
+                if 'm' in next_state.values():
+                    for key, value in next_state.items():
+                        if value == 'm':
+                            mx = 1 if key[0] > 0 else (-1 if key[0] < 0 else 0)
+                            my = 1 if key[1] > 0 else (-1 if key[1] < 0 else 0)
 
-                            elif (my == -action[1]) and (abs(mx - action[0]) < 2):
-                                reward += 1
+                            if (action[0], action[1]) != (0, 0):
+                                if (mx == -action[0]) and (my == -action[1]):
+                                    reward += 3
 
-        old_value = 0
-        old_value_backup = 0
-        for i in self.q_table:
-            if i.state == state:
-                old_value = i.action_value[action]
-                old_value_backup = i.action_value[action_backup]
-                break
+                                elif (mx == -action[0]) and (abs(my - action[1]) < 2):
+                                    reward += 1
 
-        next_max = 0
-        for i in self.q_table:
-            if i.state == next_state:
-                next_max = max(i.action_value.values())
+                                elif (my == -action[1]) and (abs(mx - action[0]) < 2):
+                                    reward += 1
 
-        new_value = (1 - alpha) * old_value + alpha * (reward + gamma * next_max)
-        new_value_backup = (1 - alpha) * old_value_backup + alpha * (reward + gamma * next_max)
+            old_value = 0
+            old_value_backup = 0
+            for i in self.q_table:
+                if i.state == state:
+                    old_value = i.action_value[action]
+                    old_value_backup = i.action_value[action_backup]
+                    break
 
-        state_exists = False
-        for i in range(self.q_table.size):
-            if self.q_table[i].state == state:
-                state_exists = True
-                new_dic = self.q_table[i].action_value
-                new_dic[action] = new_value
+            next_max = 0
+            for i in self.q_table:
+                if i.state == next_state:
+                    next_max = max(i.action_value.values())
+
+            new_value = (1 - alpha) * old_value + alpha * (reward + gamma * next_max)
+            new_value_backup = (1 - alpha) * old_value_backup + alpha * (reward + gamma * next_max)
+
+            state_exists = False
+            for i in range(self.q_table.size):
+                if self.q_table[i].state == state:
+                    state_exists = True
+                    new_dic = self.q_table[i].action_value
+                    new_dic[action] = new_value
+                    if action != action_backup:
+                        new_dic[action_backup] = new_value_backup
+                    self.q_table[i] = QEntry(state, new_dic)
+                    break
+
+            if not state_exists:
+                new_entry = QEntry(state)
+                new_entry.action_value[action] = new_value
                 if action != action_backup:
-                    new_dic[action_backup] = new_value_backup
-                self.q_table[i] = QEntry(state, new_dic)
-                break
+                    new_entry.action_value[action_backup] = new_value_backup
+                self.q_table = np.append(self.q_table, [new_entry])
 
-        if not state_exists:
-            new_entry = QEntry(state)
-            new_entry.action_value[action] = new_value
-            if action != action_backup:
-                new_entry.action_value[action_backup] = new_value_backup
-            self.q_table = np.append(self.q_table, [new_entry])
-
-        if self.show_rewards:
-            file = open('rewards.csv', 'a')
-            file.write('(' + str(self.x) + ' ' + str(self.y) + '),(' + str(action[0]) + ' ' + str(action[1]) + ' ' + str(action[2]) + '),' + str(reward) + ',\n')
+            if self.show_rewards:
+                file = open('rewards.csv', 'a')
+                file.write('(' + str(self.x) + ' ' + str(self.y) + '),(' + str(action[0]) + ' ' + str(action[1]) + ' ' + str(action[2]) + '),' + str(reward) + ',\n')
 
         return action
 

@@ -31,5 +31,5 @@ def run_game():
     # Run!
     g.go(1)
 
-for i in range(100):
+for i in range(10):
     run_game()

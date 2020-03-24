@@ -23,11 +23,11 @@ from interactivecharacter import InteractiveCharacter
 def run_game():
     random.seed(123)
     g = Game.fromfile('map.txt')
-    g.add_monster(SelfPreservingMonster("selfpreserving", # name
-                                        "S",              # avatar
-                                        3, 9,             # position
-                                        1                 # detection range
-    ))
+    # g.add_monster(SelfPreservingMonster("selfpreserving", # name
+    #                                     "S",              # avatar
+    #                                     3, 9,             # position
+    #                                     1                 # detection range
+    # ))
     # TODO Add your character
 
     # Uncomment this if you want the test character
@@ -52,6 +52,7 @@ def run_game():
 
 
 for i in range(100):
+    print("Episode: ", i )
     run_game()
 
 input()

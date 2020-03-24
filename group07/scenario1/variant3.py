@@ -35,7 +35,8 @@ def run_game():
     ))
 
     # Run!
-    g.go(1)
+    g.go(200)
 
-for i in range(100):
+for i in range(4):
+    print("Episode: ", i+1)
     run_game()

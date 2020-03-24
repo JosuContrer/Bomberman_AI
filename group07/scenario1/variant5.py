@@ -16,7 +16,7 @@ from testcharacter import TestCharacter
 from interactivecharacter import InteractiveCharacter
 
 # Create the game
-def run_game():
+def run_game( i ):
     # random.seed(123) # TODO Change this if you want different random choices
     g = Game.fromfile('map.txt')
     g.add_monster(StupidMonster("stupid", # name
@@ -40,9 +40,9 @@ def run_game():
                                          0, 0  # position
     ))
 
-
     # Run!
     g.go(1)
 
-for i in range(500):
-    run_game()
+for i in range(1000):
+    print("Episode ", i + 1)
+    run_game(i)
