@@ -7,14 +7,27 @@
 
 ## Overview
 
-Using stock historical data, train a supervised learning algorithm with any combination of financial indicators. Rapidly backtest your model for accuracy and simulate investment portfolio performance. 
+The goal of this project was to build an AI agent using reinforcement learning to play the classic Bomberman game. The agent was capable of beating each variant in the two scenarios given. This agent was also able to blow up walls, monsters, and and tried to get to the goal quickly to accomplish a better score.
+
+This project was done to fulfill Professors Carlo Pinciroli's Introduction to AI course offered by at Worcester Polythecnic Institute
+
+## Setup and Installation
+
+To run, setup, and understand this implementation of Bomberman  clone the following repo or click on this [link](https://github.com/NESTLab/CS4341-projects). The cloned folder will contain two folders `Bomberman` and `ConnectN`. Click on the `Bomberman` folder and follow the setup instructions. You can further read to have a better understanding on how this python implementations works.
+
+```
+git clone https://github.com/NESTLab/CS4341-projects.git                           
+```
+
 
 ## Required Software
-To run Bomberman, you'll need Python 3 with the `colorama` and `pygame`
-packages. To install them, type either
+The only required software is Python 3 with the `colorama` and `pygame`
+packages. To install these packages, type
+
 ```python
 pip install colorama pygame                           
 ```
+
 
 ## Authors
 
