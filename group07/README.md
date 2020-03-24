@@ -70,15 +70,12 @@ Reward values were assigned based on events that would occur in the next state. 
 ### Results
 
 #### Scenario 1
-<div class="column">
-    <p align="center"><img width=20% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant2_sdemo.gif"></p>
-</div>
-<div class="column">
-    <p align="center"><img width=20% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant2_sdemo2.gif"></p>
-</div> 
-<div class="column">
-    <p align="center"><img width=20% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant5_sdemo.gif"></p>
-</div>  
+![alt-text-1](<img width=20% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant2_sdemo.gif"></p> "title-1)
+
+![alt-text-2](<p align="center"><img width=20% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant2_sdemo2.gif"></p> "title-2)
+
+#### <p align="center"><img width=20% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant5_sdemo.gif"></p>
+  
 
 #### Scenario 2
 
