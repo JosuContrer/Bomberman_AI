@@ -72,7 +72,8 @@ Reward values were assigned based on events that would occur in the next state. 
 #### Scenario 1
 Solarized dark             |  Solarized Ocean
 :-------------------------:|:-------------------------:
-![](https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant2_sdemo.gif)  |  ![](https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant2_sdemo2.gif)
+![](<img width=20% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant2_sdemo.gif">) | ![](<img width=20% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario1_variant2_sdemo2.gif">)
+
 
 #### Scenario 2
 
