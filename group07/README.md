@@ -94,7 +94,7 @@ The plot below demonstrates an Agent that starts with an unpopulated Q-table (no
 
 <p align="center"><img width=58% src="https://github.com/JosuContrer/Bomberman_AI/blob/master/group07/media/scenario2_variant4_rewards_table.png"></p>
 
-
+* **Important Note:** When training an Agent remember to save the "brain" (Q-table) when it is successfull. This helps to be able to recreate the the Agent beating each variant in both sceanrios. It also later allows to take it on video and show it in reports and github readme's.
 ## Authors
 
 * **Nicholas Delli Carpini**
